@@ -1,0 +1,6 @@
+Programming Platform: IntelliJ IDEA Community Edition
+JDK 21 or above installed
+JavaFX as GUI development tool
+The project must use Maven to manage (integrated in IntelliJ)
+JUnit as testing suite (integrated in IntelliJ)
+Jacoco as the test coverage measurement (integrated in IntelliJ)
