@@ -2,6 +2,7 @@ package com.hkust.marketplace.controllers.admin;
 
 import com.hkust.marketplace.models.*;
 import com.hkust.marketplace.utils.DummyDataService;
+import com.hkust.marketplace.utils.PasswordUtil;
 import com.hkust.marketplace.utils.SceneManager;
 import com.hkust.marketplace.utils.SessionManager;
 import javafx.collections.FXCollections;
@@ -363,7 +364,33 @@ public class AdminDashboardController {
         pass.setPromptText("New password (optional)");
         Button save = new Button("Save");
         save.getStyleClass().add("btn-success");
-        save.setOnAction(e -> new Alert(Alert.AlertType.INFORMATION, "Profile updated (demo).").showAndWait());
+        save.setOnAction(e -> {
+            // guard against a missing session
+            if (user == null) {
+                new Alert(Alert.AlertType.WARNING, "You are not logged in.").showAndWait();
+                return;
+            }
+            // read the form values
+            String newName = name.getText().trim();
+            String newPassword = pass.getText();
+            // keep the admin name valid
+            if (newName.isEmpty()) {
+                new Alert(Alert.AlertType.WARNING, "Full Name cannot be empty.").showAndWait();
+                return;
+            }
+            // optional password change
+            if (!newPassword.isEmpty()) {
+                String pwdCheck = DummyDataService.checkPasswordStrength(newPassword);
+                if (!"OK".equals(pwdCheck)) {
+                    new Alert(Alert.AlertType.WARNING, pwdCheck).showAndWait();
+                    return;
+                }
+                // store the hash and nothing else
+                user.setPasswordHash(PasswordUtil.hash(newPassword));
+            }
+            user.setFullName(newName);
+            new Alert(Alert.AlertType.INFORMATION, "Profile updated.").showAndWait();
+        });
         form.getChildren().addAll(new Label("Full Name"), name, new Label("New Password"), pass, save);
         contentPane.getChildren().add(form);
     }
