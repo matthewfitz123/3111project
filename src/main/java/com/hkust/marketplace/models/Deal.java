@@ -10,17 +10,18 @@ public class Deal {
     private String buyerUsername;
     private String sellerUsername;
     private ListingType dealType;
-    private String status; // Pending, Accepted, Completed, Returned, Cancelled
+    private DealStatus status;
     private Double offerPrice;
     private LocalDate borrowStart;
     private LocalDate borrowEnd;
     private LocalDateTime createdAt;
     private LocalDateTime completedAt;
+    private LocalDateTime dueAt;   // for LEND deals: when the item must be returned; null otherwise
     private boolean rated;
 
     public Deal() {
         this.createdAt = LocalDateTime.now();
-        this.status = "Pending";
+        this.status = DealStatus.PENDING;
         this.rated = false;
     }
 
@@ -43,8 +44,8 @@ public class Deal {
     public ListingType getDealType() { return dealType; }
     public void setDealType(ListingType dealType) { this.dealType = dealType; }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public DealStatus getStatus() { return status; }
+    public void setStatus(DealStatus status) { this.status = status; }
 
     public Double getOfferPrice() { return offerPrice; }
     public void setOfferPrice(Double offerPrice) { this.offerPrice = offerPrice; }
@@ -60,6 +61,9 @@ public class Deal {
 
     public LocalDateTime getCompletedAt() { return completedAt; }
     public void setCompletedAt(LocalDateTime completedAt) { this.completedAt = completedAt; }
+
+    public LocalDateTime getDueAt() { return dueAt; }
+    public void setDueAt(LocalDateTime dueAt) { this.dueAt = dueAt; }
 
     public boolean isRated() { return rated; }
     public void setRated(boolean rated) { this.rated = rated; }
