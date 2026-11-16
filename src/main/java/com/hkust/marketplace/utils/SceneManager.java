@@ -8,10 +8,11 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.function.Consumer;
 
 /**
- * Central navigation helper.
- * Loads FXML scenes and keeps a reference to the primary stage.
+ * central navigation helper
+ * loads fxml screens and remembers the primary stage
  */
 public class SceneManager {
 
@@ -26,12 +27,30 @@ public class SceneManager {
         return primaryStage;
     }
 
+    /**
+     * opens a scene without giving anything to its controller
+     */
     public static void switchScene(String fxmlName) {
+        load(fxmlName, null);
+    }
+
+    /**
+     * opens a scene and hands the controller to the initializer
+     * useful when a screen needs an id before it can render
+     */
+    public static <T> void switchScene(String fxmlName, Consumer<T> initializer) {
+        load(fxmlName, initializer);
+    }
+
+    // both public methods end up here so the loading code only lives once
+    @SuppressWarnings("unchecked")
+    private static <T> void load(String fxmlName, Consumer<T> initializer) {
         try {
             if (primaryStage == null) {
                 throw new IllegalStateException("SceneManager not initialized – primaryStage is null");
             }
 
+            // find the fxml next to the other resources
             URL resource = SceneManager.class.getResource(FXML_BASE + fxmlName);
             if (resource == null) {
                 throw new IOException("FXML resource not found on classpath: " + FXML_BASE + fxmlName);
@@ -41,6 +60,7 @@ public class SceneManager {
             FXMLLoader loader = new FXMLLoader(resource);
             Parent root = loader.load();
 
+            // reuse the scene so the stylesheet sticks around
             Scene scene = primaryStage.getScene();
             if (scene == null) {
                 scene = new Scene(root, 1200, 780);
@@ -50,8 +70,15 @@ public class SceneManager {
                 }
                 primaryStage.setScene(scene);
             } else {
-                // Keep stylesheets when swapping root
                 scene.setRoot(root);
+            }
+
+            // let the caller pass an id or other setup to the controller
+            if (initializer != null) {
+                T controller = (T) loader.getController();
+                if (controller != null) {
+                    initializer.accept(controller);
+                }
             }
             System.out.println("[SceneManager] Switched to: " + fxmlName);
         } catch (Exception e) {
@@ -61,7 +88,7 @@ public class SceneManager {
                     + ": " + cause.getMessage();
             System.err.println("[SceneManager] " + msg);
 
-            // Show a dialog so the error is visible without reading the console
+            // show a dialog so the error is visible without reading the console
             try {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Navigation Error");
@@ -69,7 +96,7 @@ public class SceneManager {
                 alert.setContentText(msg);
                 alert.showAndWait();
             } catch (Exception ignored) {
-                // If even the alert fails, at least we printed to console
+                // if even the alert fails we still printed to console
             }
             throw new RuntimeException(msg, e);
         }
