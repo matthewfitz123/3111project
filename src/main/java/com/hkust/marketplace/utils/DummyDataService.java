@@ -23,10 +23,21 @@ public class DummyDataService {
     private final List<Notification> notifications = new ArrayList<>();
     private final List<Review> reviews = new ArrayList<>();
 
+    // step 3 additions, all in memory like everything else here
+    private final List<Offer> offers = new ArrayList<>();
+    private final Map<String, ChatThread> chatThreads = new LinkedHashMap<>();
+    private final List<ChatMessage> chatMessages = new ArrayList<>();
+    private final List<Report> reports = new ArrayList<>();
+    // each line looks like "timestamp | actor | action | detail"
+    private final List<String> auditLog = new ArrayList<>();
+
     private final AtomicInteger listingIdCounter = new AtomicInteger(100);
     private final AtomicInteger dealIdCounter = new AtomicInteger(500);
     private final AtomicInteger notifIdCounter = new AtomicInteger(1);
     private final AtomicInteger reviewIdCounter = new AtomicInteger(1);
+    private final AtomicInteger offerIdCounter = new AtomicInteger(1);
+    private final AtomicInteger chatIdCounter = new AtomicInteger(1);
+    private final AtomicInteger reportIdCounter = new AtomicInteger(1);
 
     // predefined hkust locations
     public static final List<String> HKUST_LOCATIONS = List.of(
@@ -291,6 +302,274 @@ public class DummyDataService {
             r.setId("R" + reviewIdCounter.getAndIncrement());
         }
         reviews.add(r);
+    }
+
+    // ========== offer methods ==========
+
+    /**
+     * saves a new offer and gives it an id when it does not have one
+     */
+    public void addOffer(Offer offer) {
+        if (offer == null) {
+            return;
+        }
+        // offers get their own counter so ids stay short and readable
+        if (offer.getId() == null) {
+            offer.setId("O" + offerIdCounter.getAndIncrement());
+        }
+        offers.add(offer);
+    }
+
+    /**
+     * finds one offer by id, returns null when it is not there
+     */
+    public Offer findOffer(String id) {
+        // the list is tiny so a plain loop is fine
+        for (Offer offer : offers) {
+            if (offer.getId().equals(id)) {
+                return offer;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * every offer on a listing, whatever the status
+     */
+    public List<Offer> getOffersForListing(String listingId) {
+        return offers.stream()
+                .filter(offer -> offer.getListingId() != null
+                        && offer.getListingId().equals(listingId))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * every offer a buyer made, callers can filter the status themselves
+     */
+    public List<Offer> getOffersForBuyer(String username) {
+        return offers.stream()
+                .filter(offer -> offer.getBuyerUsername() != null
+                        && offer.getBuyerUsername().equalsIgnoreCase(username))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * pending offers for a seller, found by joining through the listing
+     */
+    public List<Offer> getPendingOffersForSeller(String username) {
+        List<Offer> pending = new ArrayList<>();
+        for (Offer offer : offers) {
+            // only pending ones are interesting for the seller screen
+            if (offer.getStatus() != OfferStatus.PENDING) {
+                continue;
+            }
+            // the listing knows who actually owns the item
+            Listing listing = findListing(offer.getListingId());
+            if (listing != null && listing.getSellerUsername().equalsIgnoreCase(username)) {
+                pending.add(offer);
+            }
+        }
+        return pending;
+    }
+
+    /**
+     * replaces an existing offer with the updated version
+     */
+    public void updateOffer(Offer offer) {
+        for (int i = 0; i < offers.size(); i++) {
+            if (offers.get(i).getId().equals(offer.getId())) {
+                offers.set(i, offer);
+                return;
+            }
+        }
+        // later steps should only update offers that exist
+        throw new IllegalArgumentException("no offer with id " + offer.getId());
+    }
+
+    // ========== chat methods ==========
+
+    /**
+     * finds the thread for this listing and buyer or creates a fresh one
+     */
+    public ChatThread getOrCreateThread(String listingId, String buyerUsername) {
+        // one thread per listing + buyer pair
+        for (ChatThread thread : chatThreads.values()) {
+            if (thread.getListingId().equals(listingId)
+                    && thread.getBuyerUsername().equalsIgnoreCase(buyerUsername)) {
+                return thread;
+            }
+        }
+        Listing listing = findListing(listingId);
+        if (listing == null) {
+            throw new IllegalArgumentException("no listing with id " + listingId);
+        }
+        ChatThread thread = new ChatThread();
+        // one counter is enough, prefixes keep thread and message ids apart
+        thread.setId("T" + chatIdCounter.getAndIncrement());
+        thread.setListingId(listingId);
+        thread.setListingTitle(listing.getTitle());
+        thread.setBuyerUsername(buyerUsername);
+        thread.setSellerUsername(listing.getSellerUsername());
+        chatThreads.put(thread.getId(), thread);
+        return thread;
+    }
+
+    /**
+     * stores a chat message and gives it an id when needed
+     */
+    public void addChatMessage(ChatMessage message) {
+        if (message == null) {
+            return;
+        }
+        if (message.getId() == null) {
+            message.setId("M" + chatIdCounter.getAndIncrement());
+        }
+        chatMessages.add(message);
+    }
+
+    /**
+     * every message in one thread, oldest first
+     */
+    public List<ChatMessage> getMessagesForThread(String threadId) {
+        return chatMessages.stream()
+                .filter(message -> message.getThreadId() != null
+                        && message.getThreadId().equals(threadId))
+                .sorted(Comparator.comparing(ChatMessage::getSentAt,
+                        Comparator.nullsLast(Comparator.naturalOrder())))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * case-insensitive search across every stored message
+     */
+    public List<ChatMessage> searchMessages(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return new ArrayList<>();
+        }
+        String needle = keyword.toLowerCase();
+        return chatMessages.stream()
+                .filter(message -> message.getContent() != null
+                        && message.getContent().toLowerCase().contains(needle))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * threads where the user is either the buyer or the seller
+     */
+    public List<ChatThread> getThreadsForUser(String username) {
+        return chatThreads.values().stream()
+                .filter(thread -> (thread.getBuyerUsername() != null
+                        && thread.getBuyerUsername().equalsIgnoreCase(username))
+                        || (thread.getSellerUsername() != null
+                        && thread.getSellerUsername().equalsIgnoreCase(username)))
+                .collect(Collectors.toList());
+    }
+
+    // ========== report methods ==========
+
+    /**
+     * saves a report from a buyer
+     */
+    public void addReport(Report report) {
+        if (report == null) {
+            return;
+        }
+        if (report.getId() == null) {
+            report.setId("RP" + reportIdCounter.getAndIncrement());
+        }
+        reports.add(report);
+    }
+
+    /**
+     * all reports, appends go at the end
+     */
+    public List<Report> getReports() {
+        return new ArrayList<>(reports);
+    }
+
+    /**
+     * marks one report as handled by admin
+     */
+    public void markReportResolved(String id) {
+        for (Report report : reports) {
+            if (report.getId().equals(id)) {
+                report.setResolved(true);
+                return;
+            }
+        }
+    }
+
+    // ========== deal helpers ==========
+
+    /**
+     * updates one deal status, used by offers, returns and the scheduler
+     */
+    public void updateDealStatus(String dealId, DealStatus status) {
+        for (Deal deal : deals) {
+            if (deal.getId().equals(dealId)) {
+                deal.setStatus(status);
+                return;
+            }
+        }
+    }
+
+    /**
+     * active deals on one listing, handy for locking edits
+     */
+    public List<Deal> getActiveDealsForListing(String listingId) {
+        return deals.stream()
+                .filter(deal -> deal.getListingId() != null
+                        && deal.getListingId().equals(listingId)
+                        && deal.getStatus() == DealStatus.ACTIVE)
+                .collect(Collectors.toList());
+    }
+
+    // ========== user + audit helpers ==========
+
+    /**
+     * soft disables an account so the login screen can block it
+     */
+    public void deactivateUser(String username) {
+        User user = findUser(username);
+        if (user != null) {
+            user.setActive(false);
+        }
+    }
+
+    /**
+     * switches an account back on
+     */
+    public void reactivateUser(String username) {
+        User user = findUser(username);
+        if (user != null) {
+            user.setActive(true);
+        }
+    }
+
+    /**
+     * returns a copy of the audit log, oldest first
+     */
+    public List<String> getAuditLog() {
+        return new ArrayList<>(auditLog);
+    }
+
+    /**
+     * adds one line to the audit log
+     */
+    public void logAudit(String actor, String action, String detail) {
+        auditLog.add(LocalDateTime.now() + " | " + actor + " | " + action + " | " + detail);
+    }
+
+    // ========== listing view helper ==========
+
+    /**
+     * bumps a listing view count by one
+     */
+    public void incrementViewCount(String listingId) {
+        Listing listing = findListing(listingId);
+        if (listing != null) {
+            listing.setViewCount(listing.getViewCount() + 1);
+        }
     }
 
     // rules used by buyer and seller registration
