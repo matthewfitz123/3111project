@@ -14,6 +14,9 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <javafx.version>21.0.2</javafx.version>
+        <!-- IntelliJ Maven sync resolves platform-specific JavaFX jars via this property.
+             Change to 'mac' or 'linux' if building on those OSes. -->
+        <javafx.platform>win</javafx.platform>
     </properties>
 
     <dependencies>
