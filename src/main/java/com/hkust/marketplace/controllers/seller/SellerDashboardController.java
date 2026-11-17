@@ -2,6 +2,7 @@ package com.hkust.marketplace.controllers.seller;
 
 import com.hkust.marketplace.models.*;
 import com.hkust.marketplace.utils.DummyDataService;
+import com.hkust.marketplace.utils.PasswordUtil;
 import com.hkust.marketplace.utils.SceneManager;
 import com.hkust.marketplace.utils.SessionManager;
 import javafx.collections.FXCollections;
@@ -376,7 +377,36 @@ public class SellerDashboardController {
 
         Button save = new Button("Save Changes");
         save.getStyleClass().add("btn-gold");
-        save.setOnAction(e -> new Alert(Alert.AlertType.INFORMATION, "Profile saved (demo).").showAndWait());
+        save.setOnAction(e -> {
+            // nothing to update without a session
+            if (user == null) {
+                new Alert(Alert.AlertType.WARNING, "You are not logged in.").showAndWait();
+                return;
+            }
+            // read the form
+            String newName = name.getText().trim();
+            String newPassword = pass.getText();
+            // name is the one field that has to be there
+            if (newName.isEmpty()) {
+                new Alert(Alert.AlertType.WARNING, "Full Name cannot be empty.").showAndWait();
+                return;
+            }
+            // only re-hash when a new password was typed
+            if (!newPassword.isEmpty()) {
+                String pwdCheck = DummyDataService.checkPasswordStrength(newPassword);
+                if (!"OK".equals(pwdCheck)) {
+                    new Alert(Alert.AlertType.WARNING, pwdCheck).showAndWait();
+                    return;
+                }
+                // keep the hash, not the password
+                user.setPasswordHash(PasswordUtil.hash(newPassword));
+            }
+            // seller extras are optional so just save what is there
+            user.setFullName(newName);
+            user.setBio(bio.getText().trim());
+            user.setPreferredMeetup(meetup.getValue());
+            new Alert(Alert.AlertType.INFORMATION, "Profile saved.").showAndWait();
+        });
 
         form.getChildren().addAll(
                 new Label("Full Name"), name,

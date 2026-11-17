@@ -5,6 +5,7 @@ import com.hkust.marketplace.models.ListingType;
 import com.hkust.marketplace.models.Notification;
 import com.hkust.marketplace.models.User;
 import com.hkust.marketplace.utils.DummyDataService;
+import com.hkust.marketplace.utils.PasswordUtil;
 import com.hkust.marketplace.utils.SceneManager;
 import com.hkust.marketplace.utils.SessionManager;
 import javafx.collections.FXCollections;
@@ -367,7 +368,39 @@ public class BuyerDashboardController {
         Button saveBtn = new Button("Save Changes");
         saveBtn.getStyleClass().add("btn-primary");
         saveBtn.setOnAction(e -> {
-            new Alert(Alert.AlertType.INFORMATION, "Profile updated successfully!\n(Demo only – changes are in-memory)").showAndWait();
+            // someone has to be logged in for this to make sense
+            if (user == null) {
+                new Alert(Alert.AlertType.WARNING, "You are not logged in.").showAndWait();
+                return;
+            }
+            // grab the values from the form
+            String newName = nameField.getText().trim();
+            String newPassword = newPass.getText();
+            // the full name still cannot be blank
+            if (newName.isEmpty()) {
+                new Alert(Alert.AlertType.WARNING, "Full Name cannot be empty.").showAndWait();
+                return;
+            }
+            // only touch the password if the user actually typed one
+            if (!newPassword.isEmpty()) {
+                // same rules as registration
+                String pwdCheck = DummyDataService.checkPasswordStrength(newPassword);
+                if (!"OK".equals(pwdCheck)) {
+                    new Alert(Alert.AlertType.WARNING, pwdCheck).showAndWait();
+                    return;
+                }
+                // both password boxes have to match
+                if (!newPassword.equals(confirmPass.getText())) {
+                    new Alert(Alert.AlertType.WARNING, "Passwords do not match.").showAndWait();
+                    return;
+                }
+                // hash before saving, never keep the raw one
+                user.setPasswordHash(PasswordUtil.hash(newPassword));
+            }
+            // these fields can be updated straight away
+            user.setFullName(newName);
+            user.setResidenceHall(residence.getValue());
+            new Alert(Alert.AlertType.INFORMATION, "Profile updated successfully!").showAndWait();
         });
 
         form.getChildren().addAll(title,
