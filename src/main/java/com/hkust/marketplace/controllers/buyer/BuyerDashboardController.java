@@ -18,7 +18,10 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 public class BuyerDashboardController {
 
@@ -28,6 +31,15 @@ public class BuyerDashboardController {
     @FXML private Button btnBrowse, btnDeals, btnHistory, btnFavourites, btnNotifications, btnProfile;
 
     private Button currentActiveBtn;
+
+    // browse filter state, kept as fields so re-rendering keeps what the user picked
+    private String browseCategory = "All Categories";
+    private String browseType = "All Types";
+    private String browseCondition = "All Conditions";
+    private String browseSort = "Newest";
+    private String browseSearch = "";
+    private String browseMinPrice = "";
+    private String browseMaxPrice = "";
 
     @FXML
     public void initialize() {
@@ -56,37 +68,87 @@ public class BuyerDashboardController {
         VBox root = new VBox(16);
         root.setPadding(new Insets(4));
 
-        // Filter bar
+        // Filter bar - values live in fields so re-rendering keeps the user's choices
         HBox filterBar = new HBox(12);
         filterBar.setAlignment(Pos.CENTER_LEFT);
+
         ComboBox<String> categoryFilter = new ComboBox<>(FXCollections.observableArrayList("All Categories"));
         categoryFilter.getItems().addAll(DummyDataService.CATEGORIES);
-        categoryFilter.getSelectionModel().selectFirst();
+        categoryFilter.getSelectionModel().select(browseCategory);
+        categoryFilter.setOnAction(e -> {
+            browseCategory = categoryFilter.getValue();
+            showBrowse();
+        });
+
         ComboBox<String> typeFilter = new ComboBox<>(FXCollections.observableArrayList("All Types", "Sell", "Lend", "Giveaway"));
-        typeFilter.getSelectionModel().selectFirst();
-        TextField searchField = new TextField();
+        typeFilter.getSelectionModel().select(browseType);
+        typeFilter.setOnAction(e -> {
+            browseType = typeFilter.getValue();
+            showBrowse();
+        });
+
+        ComboBox<String> conditionFilter = new ComboBox<>(FXCollections.observableArrayList("All Conditions"));
+        conditionFilter.getItems().addAll(DummyDataService.CONDITIONS);
+        conditionFilter.getSelectionModel().select(browseCondition);
+        conditionFilter.setOnAction(e -> {
+            browseCondition = conditionFilter.getValue();
+            showBrowse();
+        });
+
+        ComboBox<String> sortFilter = new ComboBox<>(FXCollections.observableArrayList(
+                "Newest", "Price: Low to High", "Price: High to Low", "Title A-Z"));
+        sortFilter.getSelectionModel().select(browseSort);
+        sortFilter.setOnAction(e -> {
+            browseSort = sortFilter.getValue();
+            showBrowse();
+        });
+
+        TextField searchField = new TextField(browseSearch);
         searchField.setPromptText("Search listings...");
-        searchField.setPrefWidth(220);
-        Button searchBtn = new Button("Search");
-        searchBtn.getStyleClass().addAll("btn-primary", "btn-sm");
+        searchField.setPrefWidth(200);
+        searchField.setOnAction(e -> {
+            browseSearch = searchField.getText();
+            showBrowse();
+        });
+
+        TextField minPrice = new TextField(browseMinPrice);
+        minPrice.setPromptText("Min HK$");
+        minPrice.setPrefWidth(90);
+        TextField maxPrice = new TextField(browseMaxPrice);
+        maxPrice.setPromptText("Max HK$");
+        maxPrice.setPrefWidth(90);
+        Button applyBtn = new Button("Apply");
+        applyBtn.getStyleClass().addAll("btn-primary", "btn-sm");
+        applyBtn.setOnAction(e -> {
+            browseSearch = searchField.getText();
+            browseMinPrice = minPrice.getText();
+            browseMaxPrice = maxPrice.getText();
+            showBrowse();
+        });
+
         filterBar.getChildren().addAll(
                 new Label("Category:"), categoryFilter,
                 new Label("Type:"), typeFilter,
-                searchField, searchBtn
+                new Label("Condition:"), conditionFilter,
+                new Label("Sort:"), sortFilter,
+                new Label("Price:"), minPrice, new Label("-"), maxPrice,
+                searchField, applyBtn
         );
         root.getChildren().add(filterBar);
 
-        // Listing grid
+        // Listing grid built from the filtered + sorted list
         FlowPane grid = new FlowPane(16, 16);
         grid.setPrefWrapLength(900);
 
-        List<Listing> live = DummyDataService.getInstance().getLiveListings();
-        if (live.isEmpty()) {
-            Label empty = new Label("No live listings at the moment.");
+        List<Listing> filtered = applyBrowseFilters();
+        if (filtered.isEmpty()) {
+            Label empty = new Label(DummyDataService.getInstance().getLiveListings().isEmpty()
+                    ? "No live listings at the moment."
+                    : "No listings match your filters.");
             empty.setStyle("-fx-text-fill: #5a5a7a; -fx-font-size: 15px;");
             root.getChildren().add(empty);
         } else {
-            for (Listing listing : live) {
+            for (Listing listing : filtered) {
                 grid.getChildren().add(createListingCard(listing));
             }
             root.getChildren().add(grid);
@@ -96,6 +158,60 @@ public class BuyerDashboardController {
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background-color: transparent;");
         contentPane.getChildren().add(scroll);
+    }
+
+    // filters and sorts live listings using the browse* fields
+    private List<Listing> applyBrowseFilters() {
+        String keyword = browseSearch == null ? "" : browseSearch.trim().toLowerCase();
+        Double min = parsePrice(browseMinPrice);
+        Double max = parsePrice(browseMaxPrice);
+
+        List<Listing> result = new ArrayList<>();
+        for (Listing l : DummyDataService.getInstance().getLiveListings()) {
+            if (!keyword.isEmpty()) {
+                String haystack = (l.getTitle() + " " + (l.getDescription() == null ? "" : l.getDescription()))
+                        .toLowerCase();
+                if (!haystack.contains(keyword)) continue;
+            }
+            if (!"All Categories".equals(browseCategory) && !Objects.equals(l.getCategory(), browseCategory)) continue;
+            if (!"All Types".equals(browseType) && !typeMatches(l, browseType)) continue;
+            if (!"All Conditions".equals(browseCondition) && !Objects.equals(l.getCondition(), browseCondition)) continue;
+            if (l.getType() == ListingType.SELL && l.getPrice() != null) {
+                if (min != null && l.getPrice() < min) continue;
+                if (max != null && l.getPrice() > max) continue;
+            }
+            result.add(l);
+        }
+
+        switch (browseSort) {
+            case "Price: Low to High" -> result.sort(Comparator.comparing(
+                    l -> l.getPrice() != null ? l.getPrice() : Double.MAX_VALUE));
+            case "Price: High to Low" -> result.sort(Comparator.comparing(
+                    (Listing l) -> l.getPrice() != null ? l.getPrice() : -1.0).reversed());
+            case "Title A-Z" -> result.sort(Comparator.comparing(Listing::getTitle,
+                    String.CASE_INSENSITIVE_ORDER));
+            default -> result.sort(Comparator.comparing(Listing::getPostedAt).reversed());
+        }
+        return result;
+    }
+
+    // price fields are optional, bad input just means no bound
+    private Double parsePrice(String text) {
+        if (text == null || text.isBlank()) return null;
+        try {
+            return Double.parseDouble(text.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private boolean typeMatches(Listing l, String typeLabel) {
+        return switch (typeLabel) {
+            case "Sell" -> l.getType() == ListingType.SELL;
+            case "Lend" -> l.getType() == ListingType.LEND;
+            case "Giveaway" -> l.getType() == ListingType.GIVEAWAY;
+            default -> true;
+        };
     }
 
     private VBox createListingCard(Listing listing) {

@@ -7,12 +7,13 @@ import com.hkust.marketplace.utils.SceneManager;
 import com.hkust.marketplace.utils.SessionManager;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
-import java.time.LocalDateTime;
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -44,86 +45,16 @@ public class AdminDashboardController {
     private void showReview() {
         setActive(btnReview, "Listing Review & Approval");
         contentPane.getChildren().clear();
-
-        VBox root = new VBox(14);
-        root.setPadding(new Insets(4));
-
-        List<Listing> pending = DummyDataService.getInstance().getPendingListings();
-        if (pending.isEmpty()) {
-            Label empty = new Label("No listings awaiting review.");
-            empty.setStyle("-fx-text-fill: #2e7d32; -fx-font-size: 15px;");
-            root.getChildren().add(empty);
-        } else {
-            for (Listing l : pending) {
-                root.getChildren().add(createPendingCard(l));
-            }
+        try {
+            // the review screen lives in its own fxml/controller (step 9)
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/fxml/admin/ListingReviewView.fxml"));
+            contentPane.getChildren().add(loader.load());
+        } catch (IOException e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR,
+                    "Could not load listing review screen.\n" + e.getMessage()).showAndWait();
         }
-        ScrollPane scroll = new ScrollPane(root);
-        scroll.setFitToWidth(true);
-        contentPane.getChildren().add(scroll);
-    }
-
-    private VBox createPendingCard(Listing l) {
-        VBox card = new VBox(10);
-        card.getStyleClass().add("card");
-        card.setPadding(new Insets(16));
-
-        Label title = new Label(l.getTitle());
-        title.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
-
-        Label meta = new Label(String.format("Seller: %s (@%s)  ·  %s  ·  %s  ·  %s",
-                l.getSellerFullName(), l.getSellerUsername(),
-                l.getCategory(), l.getTypeDisplay(), l.getMeetupLocation()));
-        meta.setStyle("-fx-text-fill: #5a5a7a; -fx-font-size: 12px;");
-
-        Label submitted = new Label("Submitted: " +
-                l.getPostedAt().format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm")));
-        submitted.setStyle("-fx-text-fill: #9aa0b0; -fx-font-size: 11px;");
-
-        HBox actions = new HBox(10);
-        Button approve = new Button("Approve");
-        approve.getStyleClass().addAll("btn-success", "btn-sm");
-        approve.setOnAction(e -> {
-            Alert conf = new Alert(Alert.AlertType.CONFIRMATION, "Approve this listing?");
-            conf.showAndWait().ifPresent(r -> {
-                if (r == ButtonType.OK) {
-                    l.setStatus(ListingStatus.LIVE);
-                    l.setReviewedAt(LocalDateTime.now());
-                    DummyDataService.getInstance().updateListing(l);
-                    DummyDataService.getInstance().addNotification(new Notification(
-                            l.getSellerUsername(), "Listing Approved",
-                            "Your listing '" + l.getTitle() + "' is now live!", "System"));
-                    showReview();
-                }
-            });
-        });
-
-        Button reject = new Button("Reject");
-        reject.getStyleClass().addAll("btn-danger", "btn-sm");
-        reject.setOnAction(e -> {
-            TextInputDialog reasonDialog = new TextInputDialog();
-            reasonDialog.setTitle("Rejection Reason");
-            reasonDialog.setHeaderText("Please provide a reason for rejection");
-            reasonDialog.setContentText("Reason:");
-            reasonDialog.showAndWait().ifPresent(reason -> {
-                if (reason.isBlank()) {
-                    new Alert(Alert.AlertType.WARNING, "Reason is required.").showAndWait();
-                    return;
-                }
-                l.setStatus(ListingStatus.REJECTED);
-                l.setRejectionReason(reason);
-                l.setReviewedAt(LocalDateTime.now());
-                DummyDataService.getInstance().updateListing(l);
-                DummyDataService.getInstance().addNotification(new Notification(
-                        l.getSellerUsername(), "Listing Rejected",
-                        "Your listing '" + l.getTitle() + "' was rejected. Reason: " + reason, "System"));
-                showReview();
-            });
-        });
-
-        actions.getChildren().addAll(approve, reject);
-        card.getChildren().addAll(title, meta, submitted, actions);
-        return card;
     }
 
     @FXML
