@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.hkust.marketplace.controllers.seller.CreateListingController"
+            fitToWidth="true">
+    <VBox maxWidth="560" styleClass="card" spacing="10" style="-fx-padding: 20;">
+        <Label text="Post a new item" styleClass="section-title"/>
+
+        <Label text="Listing Type *" style="-fx-font-weight: 600;"/>
+        <ComboBox fx:id="typeCombo" promptText="Select type" maxWidth="Infinity"/>
+
+        <Label text="Item Name *" style="-fx-font-weight: 600;"/>
+        <TextField fx:id="titleField" promptText="e.g. Calculus Textbook (Stewart)"/>
+
+        <Label text="Category *" style="-fx-font-weight: 600;"/>
+        <ComboBox fx:id="categoryCombo" promptText="Select category" maxWidth="Infinity"/>
+
+        <Label text="Condition *" style="-fx-font-weight: 600;"/>
+        <ComboBox fx:id="conditionCombo" promptText="Select condition" maxWidth="Infinity"/>
+
+        <Label text="Description" style="-fx-font-weight: 600;"/>
+        <TextArea fx:id="descriptionArea" promptText="Describe the item..." prefRowCount="4" wrapText="true"/>
+
+        <Label fx:id="priceLabel" text="Price (HK$) — required for Sell" style="-fx-font-weight: 600;"/>
+        <TextField fx:id="priceField" promptText="e.g. 180"/>
+
+        <Label fx:id="lendingDaysLabel" text="Lending Duration (days) — required for Lend" style="-fx-font-weight: 600;"/>
+        <TextField fx:id="lendingDaysField" promptText="e.g. 90"/>
+
+        <Label text="Meet-up Location *" style="-fx-font-weight: 600;"/>
+        <ComboBox fx:id="meetupCombo" promptText="Select location" maxWidth="Infinity"/>
+
+        <Label text="Photos (up to 6)" style="-fx-font-weight: 600;"/>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Button text="Select Photos…" styleClass="btn-outline" onAction="#handleSelectPhotos"/>
+            <Label fx:id="photoListLabel" text="No photos selected" style="-fx-text-fill: #5a5a7a; -fx-font-size: 12px;" wrapText="true"/>
+        </HBox>
+
+        <Label fx:id="errorLabel" style="-fx-text-fill: #c62828; -fx-font-size: 13px;"
+               wrapText="true" managed="false" visible="false"/>
+
+        <Button text="Submit for Review" styleClass="btn-gold" onAction="#handleSubmit"/>
+    </VBox>
+</ScrollPane>

@@ -4,3 +4,4 @@ out/
 *.iml
 *.class
 hs_err_pid*.log
+src/main/resources/images/uploads/

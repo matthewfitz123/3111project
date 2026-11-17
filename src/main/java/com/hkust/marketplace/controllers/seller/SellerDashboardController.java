@@ -7,8 +7,10 @@ import com.hkust.marketplace.utils.SceneManager;
 import com.hkust.marketplace.utils.SessionManager;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
@@ -17,6 +19,7 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -82,7 +85,19 @@ public class SellerDashboardController {
         title.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
         Label meta = new Label(l.getCategory() + " · " + l.getTypeDisplay() + " · " + l.getMeetupLocation());
         meta.setStyle("-fx-text-fill: #5a5a7a; -fx-font-size: 12px;");
-        info.getChildren().addAll(title, meta);
+        Label stats = new Label("Views: " + l.getViewCount() + " · Posted: " + formatPostedAt(l));
+        stats.setStyle("-fx-text-fill: #5a5a7a; -fx-font-size: 12px;");
+
+        info.getChildren().addAll(title, meta, stats);
+        String detail = statusDetail(l);
+        if (detail != null) {
+            Label detailLabel = new Label(detail);
+            detailLabel.setWrapText(true);
+            detailLabel.setStyle(l.getStatus() == ListingStatus.REJECTED
+                    ? "-fx-text-fill: #c62828; -fx-font-size: 12px;"
+                    : "-fx-text-fill: #ed6c02; -fx-font-size: 12px;");
+            info.getChildren().add(detailLabel);
+        }
 
         Label status = new Label(l.getStatus().name().replace('_', ' '));
         status.getStyleClass().add("badge");
@@ -93,131 +108,42 @@ public class SellerDashboardController {
             default -> status.getStyleClass().add("badge-sold");
         }
 
-        Button editBtn = new Button("Edit");
-        editBtn.getStyleClass().addAll("btn-outline", "btn-sm");
-        editBtn.setOnAction(e -> new Alert(Alert.AlertType.INFORMATION,
-                "Edit form would open here.\n(Demo placeholder)").showAndWait());
-
-        Button delBtn = new Button("Delete");
-        delBtn.getStyleClass().addAll("btn-danger", "btn-sm");
-        delBtn.setOnAction(e -> {
-            Alert conf = new Alert(Alert.AlertType.CONFIRMATION, "Delete this listing?");
-            conf.showAndWait().ifPresent(r -> {
-                if (r == ButtonType.OK) {
-                    DummyDataService.getInstance().removeListing(l.getId());
-                    showMyListings();
-                }
-            });
-        });
-
-        row.getChildren().addAll(info, status, editBtn, delBtn);
+        row.getChildren().addAll(info, status);
         return row;
+    }
+
+    private String formatPostedAt(Listing listing) {
+        return listing.getPostedAt() == null
+                ? "Unknown"
+                : listing.getPostedAt().format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm"));
+    }
+
+    private String statusDetail(Listing listing) {
+        return switch (listing.getStatus()) {
+            case PENDING_REVIEW -> "Awaiting admin review.";
+            case REJECTED -> listing.getRejectionReason() == null || listing.getRejectionReason().isBlank()
+                    ? "Rejected by admin."
+                    : "Reason: " + listing.getRejectionReason();
+            default -> null;
+        };
     }
 
     @FXML
     private void showCreateListing() {
         setActive(btnCreate, "Create New Listing");
         contentPane.getChildren().clear();
-
-        VBox form = new VBox(12);
-        form.setMaxWidth(520);
-        form.getStyleClass().add("card");
-        form.setPadding(new Insets(20));
-
-        Label title = new Label("Post a new item");
-        title.getStyleClass().add("section-title");
-
-        ComboBox<String> typeCombo = new ComboBox<>(FXCollections.observableArrayList("Sell", "Lend", "Give Away"));
-        typeCombo.setPromptText("Listing type *");
-        typeCombo.setMaxWidth(Double.MAX_VALUE);
-
-        TextField nameField = new TextField();
-        nameField.setPromptText("Item name *");
-        ComboBox<String> catCombo = new ComboBox<>(FXCollections.observableArrayList(DummyDataService.CATEGORIES));
-        catCombo.setPromptText("Category *");
-        catCombo.setMaxWidth(Double.MAX_VALUE);
-        ComboBox<String> condCombo = new ComboBox<>(FXCollections.observableArrayList(DummyDataService.CONDITIONS));
-        condCombo.setPromptText("Condition *");
-        condCombo.setMaxWidth(Double.MAX_VALUE);
-        TextArea descArea = new TextArea();
-        descArea.setPromptText("Description");
-        descArea.setPrefRowCount(3);
-
-        TextField priceField = new TextField();
-        priceField.setPromptText("Price (HK$) – required for Sell");
-        TextField daysField = new TextField();
-        daysField.setPromptText("Lending duration (days) – required for Lend");
-
-        ComboBox<String> meetupCombo = new ComboBox<>(FXCollections.observableArrayList(DummyDataService.HKUST_LOCATIONS));
-        meetupCombo.setPromptText("Meet-up location *");
-        meetupCombo.setMaxWidth(Double.MAX_VALUE);
-
-        Label photoNote = new Label("📷 Photos: up to 6 (UI placeholder – file chooser not wired in demo)");
-        photoNote.setStyle("-fx-text-fill: #9aa0b0; -fx-font-size: 12px;");
-
-        Button submitBtn = new Button("Submit for Review");
-        submitBtn.getStyleClass().add("btn-gold");
-        submitBtn.setOnAction(e -> {
-            if (typeCombo.getValue() == null || nameField.getText().isBlank() ||
-                    catCombo.getValue() == null || condCombo.getValue() == null ||
-                    meetupCombo.getValue() == null) {
-                new Alert(Alert.AlertType.WARNING, "Please fill all required fields.").showAndWait();
-                return;
-            }
-            User user = SessionManager.getCurrentUser();
-            Listing listing = new Listing();
-            listing.setTitle(nameField.getText().trim());
-            listing.setDescription(descArea.getText());
-            listing.setCategory(catCombo.getValue());
-            listing.setCondition(condCombo.getValue());
-            listing.setMeetupLocation(meetupCombo.getValue());
-            listing.setSellerUsername(user.getUsername());
-            listing.setSellerFullName(user.getFullName());
-            listing.setStatus(ListingStatus.PENDING_REVIEW);
-
-            switch (typeCombo.getValue()) {
-                case "Sell" -> {
-                    listing.setType(ListingType.SELL);
-                    try { listing.setPrice(Double.parseDouble(priceField.getText())); }
-                    catch (Exception ex) {
-                        new Alert(Alert.AlertType.WARNING, "Valid price required for Sell listings.").showAndWait();
-                        return;
-                    }
-                }
-                case "Lend" -> {
-                    listing.setType(ListingType.LEND);
-                    try { listing.setLendingDays(Integer.parseInt(daysField.getText())); }
-                    catch (Exception ex) {
-                        new Alert(Alert.AlertType.WARNING, "Valid lending days required.").showAndWait();
-                        return;
-                    }
-                }
-                default -> listing.setType(ListingType.GIVEAWAY);
-            }
-            DummyDataService.getInstance().addListing(listing);
-            // Notify admin
-            DummyDataService.getInstance().addNotification(new Notification(
-                    "admin", "New Listing Submitted",
-                    user.getFullName() + " submitted '" + listing.getTitle() + "' for review.", "System"));
-            new Alert(Alert.AlertType.INFORMATION,
-                    "Listing submitted! Status: Pending Review.\nAdmin will review shortly.\n(Demo – in-memory only)").showAndWait();
-            showMyListings();
-        });
-
-        form.getChildren().addAll(title,
-                new Label("Listing Type *"), typeCombo,
-                new Label("Item Name *"), nameField,
-                new Label("Category *"), catCombo,
-                new Label("Condition *"), condCombo,
-                new Label("Description"), descArea,
-                new Label("Price (Sell only)"), priceField,
-                new Label("Lending Days (Lend only)"), daysField,
-                new Label("Meet-up Location *"), meetupCombo,
-                photoNote, submitBtn);
-
-        ScrollPane scroll = new ScrollPane(form);
-        scroll.setFitToWidth(true);
-        contentPane.getChildren().add(scroll);
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/fxml/seller/CreateListingView.fxml"));
+            Parent root = loader.load();
+            CreateListingController controller = loader.getController();
+            // return to My Listings once the listing is submitted
+            controller.setOnSubmittedCallback(this::showMyListings);
+            contentPane.getChildren().add(root);
+        } catch (IOException e) {
+            new Alert(Alert.AlertType.ERROR,
+                    "Could not load the create-listing form.\n" + e.getMessage()).showAndWait();
+        }
     }
 
     @FXML
