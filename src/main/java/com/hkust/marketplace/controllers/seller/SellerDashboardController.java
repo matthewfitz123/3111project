@@ -295,6 +295,8 @@ public class SellerDashboardController {
         TextField name = new TextField(user != null ? user.getFullName() : "");
         PasswordField pass = new PasswordField();
         pass.setPromptText("New password (optional)");
+        PasswordField confirmPass = new PasswordField();
+        confirmPass.setPromptText("Confirm new password");
         TextArea bio = new TextArea(user != null && user.getBio() != null ? user.getBio() : "");
         bio.setPrefRowCount(3);
         ComboBox<String> meetup = new ComboBox<>(FXCollections.observableArrayList(DummyDataService.HKUST_LOCATIONS));
@@ -324,6 +326,11 @@ public class SellerDashboardController {
                     new Alert(Alert.AlertType.WARNING, pwdCheck).showAndWait();
                     return;
                 }
+                // both boxes must match before we save anything
+                if (!newPassword.equals(confirmPass.getText())) {
+                    new Alert(Alert.AlertType.WARNING, "Passwords do not match.").showAndWait();
+                    return;
+                }
                 // keep the hash, not the password
                 user.setPasswordHash(PasswordUtil.hash(newPassword));
             }
@@ -337,6 +344,7 @@ public class SellerDashboardController {
         form.getChildren().addAll(
                 new Label("Full Name"), name,
                 new Label("New Password"), pass,
+                new Label("Confirm New Password"), confirmPass,
                 new Label("Bio"), bio,
                 new Label("Preferred Meet-up"), meetup,
                 save);

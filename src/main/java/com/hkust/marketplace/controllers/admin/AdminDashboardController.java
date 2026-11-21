@@ -293,6 +293,8 @@ public class AdminDashboardController {
         TextField name = new TextField(user != null ? user.getFullName() : "");
         PasswordField pass = new PasswordField();
         pass.setPromptText("New password (optional)");
+        PasswordField confirmPass = new PasswordField();
+        confirmPass.setPromptText("Confirm new password");
         Button save = new Button("Save");
         save.getStyleClass().add("btn-success");
         save.setOnAction(e -> {
@@ -316,13 +318,22 @@ public class AdminDashboardController {
                     new Alert(Alert.AlertType.WARNING, pwdCheck).showAndWait();
                     return;
                 }
+                // do not save a typo in the confirmation box
+                if (!newPassword.equals(confirmPass.getText())) {
+                    new Alert(Alert.AlertType.WARNING, "Passwords do not match.").showAndWait();
+                    return;
+                }
                 // store the hash and nothing else
                 user.setPasswordHash(PasswordUtil.hash(newPassword));
             }
             user.setFullName(newName);
             new Alert(Alert.AlertType.INFORMATION, "Profile updated.").showAndWait();
         });
-        form.getChildren().addAll(new Label("Full Name"), name, new Label("New Password"), pass, save);
+        form.getChildren().addAll(
+                new Label("Full Name"), name,
+                new Label("New Password"), pass,
+                new Label("Confirm New Password"), confirmPass,
+                save);
         contentPane.getChildren().add(form);
     }
 

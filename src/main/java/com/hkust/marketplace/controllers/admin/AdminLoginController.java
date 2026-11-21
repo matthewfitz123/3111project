@@ -40,6 +40,11 @@ public class AdminLoginController {
             showError("Incorrect password.");
             return;
         }
+        // deactivated admins should not get past the login screen
+        if (!user.isActive()) {
+            showError("Account deactivated. Contact admin.");
+            return;
+        }
         SessionManager.login(user);
         SceneManager.showAdminDashboard();
     }

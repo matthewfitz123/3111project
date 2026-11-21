@@ -4,6 +4,7 @@ import com.hkust.marketplace.models.Listing;
 import com.hkust.marketplace.models.ListingType;
 import com.hkust.marketplace.models.Notification;
 import com.hkust.marketplace.models.User;
+import com.hkust.marketplace.controllers.common.ListingDetailController;
 import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.PasswordUtil;
 import com.hkust.marketplace.utils.SceneManager;
@@ -68,12 +69,10 @@ public class BuyerDashboardController {
         VBox root = new VBox(16);
         root.setPadding(new Insets(4));
 
-        // Filter bar - values live in fields so re-rendering keeps the user's choices
-        HBox filterBar = new HBox(12);
-        filterBar.setAlignment(Pos.CENTER_LEFT);
-
+        // Filter controls live in groups so they wrap instead of shrinking to "..."
         ComboBox<String> categoryFilter = new ComboBox<>(FXCollections.observableArrayList("All Categories"));
         categoryFilter.getItems().addAll(DummyDataService.CATEGORIES);
+        categoryFilter.setPrefWidth(190);
         categoryFilter.getSelectionModel().select(browseCategory);
         categoryFilter.setOnAction(e -> {
             browseCategory = categoryFilter.getValue();
@@ -81,6 +80,7 @@ public class BuyerDashboardController {
         });
 
         ComboBox<String> typeFilter = new ComboBox<>(FXCollections.observableArrayList("All Types", "Sell", "Lend", "Giveaway"));
+        typeFilter.setPrefWidth(150);
         typeFilter.getSelectionModel().select(browseType);
         typeFilter.setOnAction(e -> {
             browseType = typeFilter.getValue();
@@ -89,6 +89,7 @@ public class BuyerDashboardController {
 
         ComboBox<String> conditionFilter = new ComboBox<>(FXCollections.observableArrayList("All Conditions"));
         conditionFilter.getItems().addAll(DummyDataService.CONDITIONS);
+        conditionFilter.setPrefWidth(185);
         conditionFilter.getSelectionModel().select(browseCondition);
         conditionFilter.setOnAction(e -> {
             browseCondition = conditionFilter.getValue();
@@ -97,6 +98,7 @@ public class BuyerDashboardController {
 
         ComboBox<String> sortFilter = new ComboBox<>(FXCollections.observableArrayList(
                 "Newest", "Price: Low to High", "Price: High to Low", "Title A-Z"));
+        sortFilter.setPrefWidth(170);
         sortFilter.getSelectionModel().select(browseSort);
         sortFilter.setOnAction(e -> {
             browseSort = sortFilter.getValue();
@@ -126,14 +128,22 @@ public class BuyerDashboardController {
             showBrowse();
         });
 
-        filterBar.getChildren().addAll(
-                new Label("Category:"), categoryFilter,
-                new Label("Type:"), typeFilter,
-                new Label("Condition:"), conditionFilter,
-                new Label("Sort:"), sortFilter,
-                new Label("Price:"), minPrice, new Label("-"), maxPrice,
-                searchField, applyBtn
-        );
+        // keep each label next to its control when the bar wraps
+        HBox categoryGroup = new HBox(6, new Label("Category:"), categoryFilter);
+        categoryGroup.setAlignment(Pos.CENTER_LEFT);
+        HBox typeGroup = new HBox(6, new Label("Type:"), typeFilter);
+        typeGroup.setAlignment(Pos.CENTER_LEFT);
+        HBox conditionGroup = new HBox(6, new Label("Condition:"), conditionFilter);
+        conditionGroup.setAlignment(Pos.CENTER_LEFT);
+        HBox sortGroup = new HBox(6, new Label("Sort:"), sortFilter);
+        sortGroup.setAlignment(Pos.CENTER_LEFT);
+        HBox priceGroup = new HBox(6, new Label("Price:"), minPrice, new Label("-"), maxPrice);
+        priceGroup.setAlignment(Pos.CENTER_LEFT);
+
+        FlowPane filterBar = new FlowPane(12, 8);
+        filterBar.setAlignment(Pos.CENTER_LEFT);
+        filterBar.getChildren().addAll(categoryGroup, typeGroup, conditionGroup, sortGroup,
+                priceGroup, searchField, applyBtn);
         root.getChildren().add(filterBar);
 
         // Listing grid built from the filtered + sorted list
@@ -268,8 +278,21 @@ public class BuyerDashboardController {
             }
         }
 
-        card.getChildren().addAll(top, title, meta, seller, location, date, actionBtn);
+        // a separate button keeps the action demo and the detail screen apart
+        Button detailsBtn = new Button("View Details");
+        detailsBtn.getStyleClass().addAll("btn-outline", "btn-sm");
+        detailsBtn.setOnAction(e -> openDetail(listing));
+
+        HBox cardActions = new HBox(8, actionBtn, detailsBtn);
+        cardActions.setAlignment(Pos.CENTER_LEFT);
+        card.getChildren().addAll(top, title, meta, seller, location, date, cardActions);
         return card;
+    }
+
+    // opens the step 12 detail screen and passes it the listing id
+    private void openDetail(Listing listing) {
+        SceneManager.<ListingDetailController>switchScene("common/ListingDetailView.fxml",
+                controller -> controller.setListingId(listing.getId()));
     }
 
     private void showOfferDialog(Listing listing) {
