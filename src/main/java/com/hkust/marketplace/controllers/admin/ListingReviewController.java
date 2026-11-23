@@ -2,7 +2,7 @@ package com.hkust.marketplace.controllers.admin;
 
 import com.hkust.marketplace.models.Listing;
 import com.hkust.marketplace.models.ListingStatus;
-import com.hkust.marketplace.models.Notification;
+import com.hkust.marketplace.services.NotificationService;
 import com.hkust.marketplace.models.UserRole;
 import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.SessionManager;
@@ -122,9 +122,7 @@ public class ListingReviewController {
                 l.setStatus(ListingStatus.LIVE);
                 l.setReviewedAt(LocalDateTime.now());
                 DummyDataService.getInstance().updateListing(l);
-                DummyDataService.getInstance().addNotification(new Notification(
-                        l.getSellerUsername(), "Listing Approved",
-                        "Your listing '" + l.getTitle() + "' is now live!", "System"));
+                NotificationService.listingApproved(l);
                 render();
             }
         });
@@ -150,9 +148,7 @@ public class ListingReviewController {
         l.setRejectionReason(reason.get());
         l.setReviewedAt(LocalDateTime.now());
         DummyDataService.getInstance().updateListing(l);
-        DummyDataService.getInstance().addNotification(new Notification(
-                l.getSellerUsername(), "Listing Rejected",
-                "Your listing '" + l.getTitle() + "' was rejected. Reason: " + reason.get(), "System"));
+        NotificationService.listingRejected(l, reason.get());
         render();
     }
 

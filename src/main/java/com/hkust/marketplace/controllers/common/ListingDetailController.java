@@ -3,22 +3,29 @@ package com.hkust.marketplace.controllers.common;
 import com.hkust.marketplace.models.Listing;
 import com.hkust.marketplace.models.ListingStatus;
 import com.hkust.marketplace.models.ListingType;
-import com.hkust.marketplace.models.Notification;
 import com.hkust.marketplace.models.Report;
 import com.hkust.marketplace.models.User;
 import com.hkust.marketplace.models.UserRole;
 import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.SceneManager;
 import com.hkust.marketplace.utils.SessionManager;
+import com.hkust.marketplace.services.NotificationService;
+import com.hkust.marketplace.services.OfferService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 
 import java.io.InputStream;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -64,8 +71,10 @@ public class ListingDetailController {
     @FXML private Label sellerRatingStars;
     @FXML private Label sellerRatingCountLabel;
     @FXML private Label sellerBioLabel;
+    @FXML private ChatPanelController chatPanelController;
 
     private Listing listing;
+    private boolean actionSent;
 
     /**
      * called by scenemanager after the fxml has loaded
@@ -126,6 +135,9 @@ public class ListingDetailController {
         renderPhotos();
         renderSeller();
         renderActions();
+        if (chatPanelController != null) {
+            chatPanelController.setListing(listing);
+        }
     }
 
     private void renderPhotos() {
@@ -183,17 +195,32 @@ public class ListingDetailController {
     }
 
     private void renderActions() {
-        // offer and chat buttons are placeholders until steps 15 to 17
+        boolean buyer = SessionManager.isBuyer();
+        boolean live = listing.getStatus() == ListingStatus.LIVE;
+
         switch (listing.getType()) {
             case SELL -> actionButton.setText("Make Offer");
             case LEND -> actionButton.setText("Request Borrow");
             case GIVEAWAY -> actionButton.setText("Claim Item");
         }
-        actionButton.setDisable(true);
-        chatButton.setDisable(true);
-        reportButton.setDisable(SessionManager.getCurrentUser() == null);
-        actionHintLabel.setText("Offers and chat are coming in the next steps. "
-                + "You can report this listing if something looks wrong.");
+        if (actionSent) {
+            actionButton.setText("Offer sent");
+        }
+
+        // buyers can act only while the listing is still live
+        actionButton.setDisable(!buyer || !live || actionSent);
+        chatButton.setDisable(chatPanelController == null);
+        reportButton.setDisable(!buyer || !live);
+
+        if (!live) {
+            actionHintLabel.setText("This listing is no longer live, so offers and claims are disabled.");
+        } else if (!buyer) {
+            actionHintLabel.setText("Only buyers can make offers or claims. You can still read the chat.");
+        } else if (actionSent) {
+            actionHintLabel.setText("Your offer is with the seller. Watch the chat for a reply.");
+        } else {
+            actionHintLabel.setText("Pick an action, or say hello in the chat below.");
+        }
     }
 
     /**
@@ -226,13 +253,149 @@ public class ListingDetailController {
             report.setReporterUsername(buyer.getUsername());
             report.setReason(reason.trim());
             DummyDataService.getInstance().addReport(report);
-            DummyDataService.getInstance().addNotification(new Notification(
-                    "admin", "Listing Reported",
+            NotificationService.notify("admin", "Listing Reported",
                     buyer.getFullName() + " reported '" + listing.getTitle() + "': " + reason.trim(),
-                    "Report"));
+                    "Report");
             new Alert(Alert.AlertType.INFORMATION,
                     "Report sent to the admin. Thanks for flagging it.").showAndWait();
         });
+    }
+
+    /**
+     * runs the action button for the current listing type
+     */
+    @FXML
+    private void handlePrimaryAction() {
+        if (listing == null) {
+            return;
+        }
+        User buyer;
+        try {
+            buyer = SessionManager.requireRole(UserRole.BUYER);
+        } catch (SecurityException ex) {
+            showWarning(ex.getMessage());
+            return;
+        }
+
+        try {
+            switch (listing.getType()) {
+                case SELL -> askForOffer(buyer);
+                case LEND -> askForBorrow(buyer);
+                case GIVEAWAY -> askForClaim(buyer);
+            }
+        } catch (RuntimeException ex) {
+            showWarning(ex.getMessage());
+        }
+    }
+
+    // price offer dialog for sell listings
+    private void askForOffer(User buyer) {
+        TextInputDialog dialog = new TextInputDialog(
+                listing.getPrice() == null ? "" : String.format("%.0f", listing.getPrice()));
+        dialog.setTitle("Make an Offer");
+        dialog.setHeaderText("Offer for: " + listing.getTitle());
+        dialog.setContentText("Your price (HK$):");
+        dialog.showAndWait().ifPresent(text -> {
+            try {
+                double price = Double.parseDouble(text.trim());
+                OfferService.submitOffer(listing, buyer, price, null, null, null);
+                actionSent = true;
+                new Alert(Alert.AlertType.INFORMATION,
+                        "Offer sent to " + listing.getSellerFullName() + ".").showAndWait();
+                reloadAfterAction();
+            } catch (NumberFormatException ex) {
+                showWarning("Enter a valid price.");
+            } catch (RuntimeException ex) {
+                showWarning(ex.getMessage());
+            }
+        });
+    }
+
+    // borrow request dialog with the two dates
+    private void askForBorrow(User buyer) {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Borrow Request");
+        dialog.setHeaderText("Request to borrow: " + listing.getTitle());
+
+        DatePicker startPicker = new DatePicker(LocalDate.now());
+        DatePicker endPicker = new DatePicker(LocalDate.now().plusDays(
+                listing.getLendingDays() == null ? 7 : listing.getLendingDays()));
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.add(new Label("Start date"), 0, 0);
+        grid.add(startPicker, 1, 0);
+        grid.add(new Label("End date"), 0, 1);
+        grid.add(endPicker, 1, 1);
+        Label hint = new Label("minimum borrow is 5 seconds for the demo, same day is fine");
+        hint.setWrapText(true);
+        hint.setStyle("-fx-text-fill: #9aa0b0; -fx-font-size: 11px;");
+        grid.add(hint, 0, 2, 2, 1);
+        dialog.getDialogPane().setContent(grid);
+
+        ButtonType send = new ButtonType("Send request", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(send, ButtonType.CANCEL);
+        dialog.showAndWait().ifPresent(button -> {
+            if (button != send) {
+                return;
+            }
+            try {
+                OfferService.submitOffer(listing, buyer, null,
+                        startPicker.getValue(), endPicker.getValue(), null);
+                actionSent = true;
+                new Alert(Alert.AlertType.INFORMATION,
+                        "Borrow request sent to " + listing.getSellerFullName() + ".").showAndWait();
+                reloadAfterAction();
+            } catch (RuntimeException ex) {
+                showWarning(ex.getMessage());
+            }
+        });
+    }
+
+    // giveaway claim is one confirmation dialog and one service call
+    private void askForClaim(User buyer) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Claim Giveaway");
+        confirm.setHeaderText("Claim: " + listing.getTitle());
+        confirm.setContentText("The first buyer to claim gets the item. Continue?");
+        confirm.showAndWait().ifPresent(button -> {
+            if (button != ButtonType.OK) {
+                return;
+            }
+            try {
+                OfferService.claimGiveaway(listing, buyer);
+                actionSent = true;
+                new Alert(Alert.AlertType.INFORMATION,
+                        "You claimed this item. The seller has been notified.").showAndWait();
+                reloadAfterAction();
+            } catch (RuntimeException ex) {
+                showWarning(ex.getMessage());
+            }
+        });
+    }
+
+    // reload the listing after an offer or claim and redraw without counting a view
+    private void reloadAfterAction() {
+        listing = DummyDataService.getInstance().findListing(listing.getId());
+        if (listing == null) {
+            showMissingListing();
+            return;
+        }
+        render();
+    }
+
+    // chat button jumps to the message box
+    @FXML
+    private void openChat() {
+        if (chatPanelController != null) {
+            chatPanelController.focusInput();
+        }
+    }
+
+    private void showWarning(String message) {
+        new Alert(Alert.AlertType.WARNING,
+                message == null || message.isBlank() ? "Something went wrong." : message).showAndWait();
     }
 
     private Image loadPhoto(String path) {
@@ -298,6 +461,13 @@ public class ListingDetailController {
 
     @FXML
     private void goBack() {
-        SceneManager.showBuyerDashboard();
+        // sellers and admins can reach this screen too, so send them home properly
+        if (SessionManager.isSeller()) {
+            SceneManager.showSellerDashboard();
+        } else if (SessionManager.isAdmin()) {
+            SceneManager.showAdminDashboard();
+        } else {
+            SceneManager.showBuyerDashboard();
+        }
     }
 }
