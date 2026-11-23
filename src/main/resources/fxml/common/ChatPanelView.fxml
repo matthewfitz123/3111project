@@ -29,6 +29,7 @@
         <TextField fx:id="messageField" promptText="Write a message..." HBox.hgrow="ALWAYS"
                    onAction="#sendMessage"/>
         <Button fx:id="sendButton" text="Send" onAction="#sendMessage" styleClass="btn-primary, btn-sm"/>
-        <Button fx:id="makeOfferButton" text="Make Offer" disable="true" styleClass="btn-outline, btn-sm"/>
+        <Button fx:id="makeOfferButton" text="Make Offer" disable="true" styleClass="btn-outline, btn-sm"
+                onAction="#makeOffer"/>
     </HBox>
 </VBox>
