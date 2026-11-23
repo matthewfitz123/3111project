@@ -1,6 +1,7 @@
 package com.hkust.marketplace.controllers.seller;
 
 import com.hkust.marketplace.models.*;
+import com.hkust.marketplace.controllers.common.ListingDetailController;
 import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.PasswordUtil;
 import com.hkust.marketplace.utils.SceneManager;
@@ -108,7 +109,13 @@ public class SellerDashboardController {
             default -> status.getStyleClass().add("badge-sold");
         }
 
-        row.getChildren().addAll(info, status);
+        // sellers can open the same detail/chat screen the buyer uses
+        Button open = new Button("Open");
+        open.getStyleClass().addAll("btn-outline", "btn-sm");
+        open.setOnAction(e -> SceneManager.<ListingDetailController>switchScene(
+                "common/ListingDetailView.fxml", controller -> controller.setListingId(l.getId())));
+
+        row.getChildren().addAll(info, status, open);
         return row;
     }
 
