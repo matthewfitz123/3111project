@@ -264,6 +264,15 @@ public class DummyDataService {
         return new ArrayList<>(deals);
     }
 
+    public Deal findDeal(String id) {
+        for (Deal deal : deals) {
+            if (deal.getId().equals(id)) {
+                return deal;
+            }
+        }
+        return null;
+    }
+
     public void addDeal(Deal deal) {
         if (deal.getId() == null) {
             deal.setId("D" + dealIdCounter.getAndIncrement());

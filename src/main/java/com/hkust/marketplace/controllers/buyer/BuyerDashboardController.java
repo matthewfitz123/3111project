@@ -1,11 +1,14 @@
 package com.hkust.marketplace.controllers.buyer;
 
+import com.hkust.marketplace.models.Deal;
+import com.hkust.marketplace.models.DealStatus;
 import com.hkust.marketplace.models.Listing;
 import com.hkust.marketplace.models.ListingType;
 import com.hkust.marketplace.models.Notification;
 import com.hkust.marketplace.models.User;
 import com.hkust.marketplace.models.UserRole;
 import com.hkust.marketplace.controllers.common.ListingDetailController;
+import com.hkust.marketplace.services.DealService;
 import com.hkust.marketplace.services.OfferService;
 import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.PasswordUtil;
@@ -21,6 +24,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -399,41 +403,168 @@ public class BuyerDashboardController {
         setActive(btnDeals, "My Deals");
         contentPane.getChildren().clear();
 
-        VBox root = new VBox(16);
+        VBox root = new VBox(12);
         root.setPadding(new Insets(4));
 
-        Label info = new Label("Active offers, borrow requests and claims");
+        Label info = new Label("Your accepted offers, borrowed items and claimed giveaways");
         info.setStyle("-fx-text-fill: #5a5a7a;");
         root.getChildren().add(info);
 
-        TableView<String[]> table = new TableView<>();
-        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        User me = SessionManager.getCurrentUser();
+        List<Deal> deals = me == null ? new ArrayList<>()
+                : new ArrayList<>(DummyDataService.getInstance().getDealsForBuyer(me.getUsername()));
+        // active deals first since they still need something from the buyer, then newest
+        deals.sort(Comparator
+                .comparing((Deal d) -> d.getStatus() != DealStatus.ACTIVE)
+                .thenComparing(Deal::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())));
 
-        TableColumn<String[], String> colTitle = new TableColumn<>("Item");
-        colTitle.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue()[0]));
-        TableColumn<String[], String> colSeller = new TableColumn<>("Seller");
-        colSeller.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue()[1]));
-        TableColumn<String[], String> colType = new TableColumn<>("Type");
-        colType.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue()[2]));
-        TableColumn<String[], String> colStatus = new TableColumn<>("Status");
-        colStatus.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue()[3]));
-        TableColumn<String[], String> colAction = new TableColumn<>("Action");
-        colAction.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue()[4]));
+        if (deals.isEmpty()) {
+            Label empty = new Label("No deals yet. Make an offer, borrow or claim an item from Browse.");
+            empty.setStyle("-fx-text-fill: #5a5a7a;");
+            root.getChildren().add(empty);
+        } else {
+            for (Deal deal : deals) {
+                root.getChildren().add(createDealCard(deal));
+            }
+        }
 
-        table.getColumns().addAll(colTitle, colSeller, colType, colStatus, colAction);
+        ScrollPane scroll = new ScrollPane(root);
+        scroll.setFitToWidth(true);
+        contentPane.getChildren().add(scroll);
+    }
 
-        // Dummy rows
-        table.setItems(FXCollections.observableArrayList(
-                new String[]{"Calculus Textbook (Stewart)", "Charlie Lee", "Buy", "Accepted", "Chat / Complete"},
-                new String[]{"Graphing Calculator TI-84", "Diana Ng", "Borrow", "Pending", "View"}
-        ));
+    private VBox createDealCard(Deal deal) {
+        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy");
+        DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("dd MMM HH:mm");
+        ListingType type = deal.getDealType();
+        DealStatus status = deal.getStatus();
+        boolean active = status == DealStatus.ACTIVE;
 
-        root.getChildren().add(table);
-        Label note = new Label("💡 Self-return for borrowed items and mark-complete are available here in the full version.");
-        note.setStyle("-fx-text-fill: #9aa0b0; -fx-font-size: 12px;");
-        root.getChildren().add(note);
+        VBox card = new VBox(8);
+        card.getStyleClass().add("card");
+        card.setPadding(new Insets(14));
+        // deals that fell through stay in the list but greyed out
+        if (status == DealStatus.CANCELLED || status == DealStatus.EXPIRED) {
+            card.setOpacity(0.6);
+        }
 
-        contentPane.getChildren().add(root);
+        HBox heading = new HBox(10);
+        heading.setAlignment(Pos.CENTER_LEFT);
+        Label titleLabel = new Label(deal.getListingTitle());
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        Label typeBadge = new Label(type == ListingType.GIVEAWAY
+                ? "Giveaway" : type == ListingType.LEND ? "Borrow" : "Buy");
+        typeBadge.getStyleClass().addAll("badge",
+                type == ListingType.SELL ? "badge-sold"
+                        : type == ListingType.LEND ? "badge-pending" : "badge-live");
+        String statusText = status == null ? "Unknown"
+                : status.name().charAt(0) + status.name().substring(1).toLowerCase();
+        Label statusBadge = new Label(statusText);
+        statusBadge.getStyleClass().addAll("badge",
+                active || status == DealStatus.PENDING ? "badge-pending"
+                        : status == DealStatus.COMPLETED || status == DealStatus.RETURNED
+                        ? "badge-live" : "badge-rejected");
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        heading.getChildren().addAll(titleLabel, typeBadge, spacer, statusBadge);
+
+        User seller = DummyDataService.getInstance().findUser(deal.getSellerUsername());
+        String sellerName = seller != null && seller.getFullName() != null && !seller.getFullName().isBlank()
+                ? seller.getFullName() : deal.getSellerUsername();
+        Label from = new Label("Seller: " + sellerName + " (@" + deal.getSellerUsername() + ")");
+        from.setStyle("-fx-text-fill: #5a5a7a; -fx-font-size: 12px;");
+
+        String termsText;
+        if (type == ListingType.LEND) {
+            termsText = deal.getBorrowStart() == null ? "Borrowed item"
+                    : "Borrowed from " + deal.getBorrowStart().format(dateFormat);
+            if (deal.getDueAt() != null) {
+                termsText += "  ·  Due back " + deal.getDueAt().format(dateFormat);
+            } else if (deal.getBorrowEnd() != null) {
+                termsText += "  ·  Due back " + deal.getBorrowEnd().format(dateFormat);
+            }
+        } else if (type == ListingType.GIVEAWAY) {
+            termsText = "Free giveaway";
+        } else {
+            termsText = deal.getOfferPrice() == null ? "Purchase"
+                    : "Agreed price: HK$" + String.format("%.0f", deal.getOfferPrice());
+        }
+        Label terms = new Label(termsText);
+        terms.setStyle("-fx-text-fill: #1a1a2e; -fx-font-size: 13px;");
+
+        String meta = "Started " + (deal.getCreatedAt() == null ? "recently"
+                : deal.getCreatedAt().format(timeFormat));
+        if (deal.getCompletedAt() != null) {
+            meta += "  ·  " + (status == DealStatus.RETURNED ? "Returned " : "Closed ")
+                    + deal.getCompletedAt().format(timeFormat);
+        } else if (active && type == ListingType.LEND && deal.getDueAt() != null
+                && deal.getDueAt().isBefore(LocalDateTime.now())) {
+            meta += "  ·  Overdue, please return it";
+        }
+        Label metaLabel = new Label(meta);
+        metaLabel.setStyle("-fx-text-fill: #9aa0b0; -fx-font-size: 11px;");
+
+        HBox actions = new HBox(8);
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        // a removed listing has no detail screen or chat left to open
+        boolean listingExists = DummyDataService.getInstance().findListing(deal.getListingId()) != null;
+
+        Button view = new Button("View listing");
+        view.getStyleClass().addAll("btn-outline", "btn-sm");
+        view.setDisable(!listingExists);
+        view.setOnAction(e -> SceneManager.<ListingDetailController>switchScene(
+                "common/ListingDetailView.fxml", c -> c.setListingId(deal.getListingId())));
+
+        Button chat = new Button("Open chat");
+        chat.getStyleClass().addAll("btn-outline", "btn-sm");
+        chat.setDisable(!listingExists);
+        chat.setOnAction(e -> SceneManager.<ListingDetailController>switchScene(
+                "common/ListingDetailView.fxml", c -> {
+                    c.setListingId(deal.getListingId());
+                    c.focusChat();
+                }));
+
+        actions.getChildren().addAll(view, chat);
+
+        if (active && type == ListingType.LEND) {
+            Button returnEarly = new Button("Return early");
+            returnEarly.getStyleClass().addAll("btn-gold", "btn-sm");
+            returnEarly.setOnAction(e -> runDealAction(
+                    "Return '" + deal.getListingTitle() + "' now? The listing goes live again.",
+                    "Item returned. " + sellerName + " has been notified.",
+                    () -> DealService.returnEarly(deal.getId())));
+            actions.getChildren().add(returnEarly);
+        } else if (active) {
+            Button complete = new Button("Mark complete");
+            complete.getStyleClass().addAll("btn-success", "btn-sm");
+            complete.setOnAction(e -> runDealAction(
+                    "Confirm you received '" + deal.getListingTitle() + "'? This closes the deal.",
+                    "Deal completed.",
+                    () -> DealService.markComplete(deal.getId())));
+            actions.getChildren().add(complete);
+        }
+
+        card.getChildren().addAll(heading, from, terms, metaLabel, actions);
+        return card;
+    }
+
+    // asks first, runs the service call, then redraws so the new status shows
+    private void runDealAction(String question, String doneMessage, Runnable action) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, question);
+        confirm.setTitle("My Deals");
+        confirm.setHeaderText(null);
+        if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
+            return;
+        }
+        try {
+            action.run();
+            new Alert(Alert.AlertType.INFORMATION, doneMessage).showAndWait();
+        } catch (RuntimeException ex) {
+            new Alert(Alert.AlertType.WARNING,
+                    ex.getMessage() == null ? "Something went wrong." : ex.getMessage()).showAndWait();
+        }
+        showMyDeals();
     }
 
     @FXML
