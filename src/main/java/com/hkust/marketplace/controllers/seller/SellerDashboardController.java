@@ -2,6 +2,7 @@ package com.hkust.marketplace.controllers.seller;
 
 import com.hkust.marketplace.models.*;
 import com.hkust.marketplace.controllers.common.ListingDetailController;
+import com.hkust.marketplace.services.OfferService;
 import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.PasswordUtil;
 import com.hkust.marketplace.utils.SceneManager;
@@ -21,6 +22,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -29,7 +31,7 @@ public class SellerDashboardController {
     @FXML private StackPane contentPane;
     @FXML private Label pageTitle;
     @FXML private Label welcomeLabel;
-    @FXML private Button btnListings, btnCreate, btnStats, btnReviews, btnNotifications, btnProfile;
+    @FXML private Button btnListings, btnCreate, btnOffers, btnStats, btnReviews, btnNotifications, btnProfile;
 
     private Button currentActiveBtn;
 
@@ -151,6 +153,159 @@ public class SellerDashboardController {
             new Alert(Alert.AlertType.ERROR,
                     "Could not load the create-listing form.\n" + e.getMessage()).showAndWait();
         }
+    }
+
+    @FXML
+    private void showOffers() {
+        setActive(btnOffers, "Offer Management");
+        contentPane.getChildren().clear();
+
+        User user = SessionManager.getCurrentUser();
+        List<Offer> pending = DummyDataService.getInstance()
+                .getPendingOffersForSeller(user != null ? user.getUsername() : "");
+
+        VBox root = new VBox(12);
+        root.setPadding(new Insets(4));
+
+        if (pending.isEmpty()) {
+            Label empty = new Label("No pending offers right now.");
+            empty.setStyle("-fx-text-fill: #5a5a7a;");
+            root.getChildren().add(empty);
+        } else {
+            for (Offer offer : pending) {
+                root.getChildren().add(createOfferCard(offer));
+            }
+        }
+        ScrollPane scroll = new ScrollPane(root);
+        scroll.setFitToWidth(true);
+        contentPane.getChildren().add(scroll);
+    }
+
+    private VBox createOfferCard(Offer offer) {
+        Listing listing = DummyDataService.getInstance().findListing(offer.getListingId());
+        String title = listing != null ? listing.getTitle() : "Listing " + offer.getListingId();
+
+        VBox card = new VBox(8);
+        card.getStyleClass().add("card");
+        card.setPadding(new Insets(14));
+
+        HBox heading = new HBox(10);
+        heading.setAlignment(Pos.CENTER_LEFT);
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        Label typeBadge = new Label(offer.getType() == ListingType.GIVEAWAY
+                ? "Giveaway" : offer.getType() == ListingType.LEND ? "Lend" : "Sell");
+        typeBadge.getStyleClass().addAll("badge",
+                offer.getType() == ListingType.SELL ? "badge-sold"
+                        : offer.getType() == ListingType.LEND ? "badge-pending" : "badge-live");
+        heading.getChildren().addAll(titleLabel, typeBadge);
+
+        User buyer = DummyDataService.getInstance().findUser(offer.getBuyerUsername());
+        String buyerName = buyer != null && buyer.getFullName() != null && !buyer.getFullName().isBlank()
+                ? buyer.getFullName() : offer.getBuyerUsername();
+        Label from = new Label("From " + buyerName + " (@" + offer.getBuyerUsername() + ")");
+        from.setStyle("-fx-text-fill: #5a5a7a; -fx-font-size: 12px;");
+
+        Label terms = new Label(offerTerms(offer));
+        terms.setStyle("-fx-text-fill: #1a1a2e; -fx-font-size: 13px;");
+
+        String meta = "Sent " + (offer.getCreatedAt() == null ? "recently"
+                : offer.getCreatedAt().format(DateTimeFormatter.ofPattern("dd MMM HH:mm")));
+        if (offer.getMessage() != null && !offer.getMessage().isBlank()) {
+            meta += "  ·  \"" + offer.getMessage() + "\"";
+        }
+        Label metaLabel = new Label(meta);
+        metaLabel.setWrapText(true);
+        metaLabel.setStyle("-fx-text-fill: #9aa0b0; -fx-font-size: 11px;");
+
+        HBox actions = new HBox(8);
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        Button accept = new Button("Accept");
+        accept.getStyleClass().addAll("btn-success", "btn-sm");
+        accept.setOnAction(e -> runOfferAction(() -> OfferService.acceptOffer(offer.getId())));
+
+        Button decline = new Button("Decline");
+        decline.getStyleClass().addAll("btn-danger", "btn-sm");
+        decline.setOnAction(e -> runOfferAction(() -> OfferService.declineOffer(offer.getId())));
+
+        Button chat = new Button("Open Chat");
+        chat.getStyleClass().addAll("btn-outline", "btn-sm");
+        chat.setOnAction(e -> SceneManager.<ListingDetailController>switchScene(
+                "common/ListingDetailView.fxml", c -> c.setListingId(offer.getListingId())));
+
+        actions.getChildren().addAll(accept, decline, chat);
+        if (offer.getType() != ListingType.GIVEAWAY) {
+            Button counter = new Button("Counter");
+            counter.getStyleClass().addAll("btn-outline", "btn-sm");
+            counter.setOnAction(e -> promptCounter(offer, title));
+            actions.getChildren().add(1, counter);
+        }
+
+        card.getChildren().addAll(heading, from, terms, metaLabel, actions);
+        return card;
+    }
+
+    private String offerTerms(Offer offer) {
+        return switch (offer.getType()) {
+            case SELL -> "Offer: HK$" + String.format("%.0f", offer.getOfferPrice());
+            case LEND -> "Borrow: " + offer.getBorrowStart() + " to " + offer.getBorrowEnd();
+            case GIVEAWAY -> "Giveaway claim";
+        };
+    }
+
+    // runs a service call, shows the error and refreshes on success
+    private void runOfferAction(Runnable action) {
+        try {
+            action.run();
+            showOffers();
+        } catch (RuntimeException ex) {
+            new Alert(Alert.AlertType.WARNING,
+                    ex.getMessage() == null ? "Something went wrong." : ex.getMessage()).showAndWait();
+        }
+    }
+
+    // counter dialog: price for sell, new return date for lend
+    private void promptCounter(Offer offer, String title) {
+        if (offer.getType() == ListingType.SELL) {
+            TextInputDialog dialog = new TextInputDialog(
+                    offer.getOfferPrice() == null ? "" : String.format("%.0f", offer.getOfferPrice()));
+            dialog.setTitle("Counter Offer");
+            dialog.setHeaderText("Counter for: " + title);
+            dialog.setContentText("Your counter price (HK$):");
+            dialog.showAndWait().ifPresent(text -> {
+                try {
+                    double price = Double.parseDouble(text.trim());
+                    runOfferAction(() -> OfferService.counterOffer(offer.getId(), price, null));
+                } catch (NumberFormatException ex) {
+                    new Alert(Alert.AlertType.WARNING, "Enter a valid price.").showAndWait();
+                }
+            });
+            return;
+        }
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Counter Offer");
+        dialog.setHeaderText("Counter for: " + title);
+
+        DatePicker endPicker = new DatePicker(
+                offer.getCounterEnd() != null ? offer.getCounterEnd()
+                        : offer.getBorrowEnd() != null ? offer.getBorrowEnd()
+                        : LocalDate.now().plusDays(7));
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.add(new Label("New return date"), 0, 0);
+        grid.add(endPicker, 1, 0);
+        dialog.getDialogPane().setContent(grid);
+
+        ButtonType send = new ButtonType("Send counter", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(send, ButtonType.CANCEL);
+        dialog.showAndWait().ifPresent(button -> {
+            if (button == send) {
+                runOfferAction(() -> OfferService.counterOffer(offer.getId(), null, endPicker.getValue()));
+            }
+        });
     }
 
     @FXML

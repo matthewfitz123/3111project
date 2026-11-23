@@ -14,6 +14,7 @@ import com.hkust.marketplace.utils.SessionManager;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 /**
  * offer, borrow request and giveaway claim rules (step 15)
@@ -105,6 +106,122 @@ public final class OfferService {
         NotificationService.notify(buyer.getUsername(), "Claim Confirmed",
                 "you claimed '" + fresh.getTitle() + "'", "Offer");
         return offer;
+    }
+
+    /**
+     * seller accepts a pending offer (step 16)
+     * creates the deal, locks the listing and tells the buyer
+     */
+    public static synchronized void acceptOffer(String offerId) {
+        User seller = SessionManager.requireRole(UserRole.SELLER);
+        Offer offer = requirePendingOffer(offerId);
+        Listing listing = requireOwnedListing(offer, seller);
+
+        if (listing.getStatus() != ListingStatus.LIVE) {
+            throw new IllegalStateException("that listing is no longer available");
+        }
+        if (offer.getType() == ListingType.GIVEAWAY) {
+            throw new IllegalStateException("giveaways are claimed, not offered");
+        }
+
+        offer.setStatus(OfferStatus.ACCEPTED);
+        offer.setRespondedAt(LocalDateTime.now());
+        DummyDataService.getInstance().updateOffer(offer);
+
+        Deal deal = new Deal();
+        deal.setListingId(listing.getId());
+        deal.setListingTitle(listing.getTitle());
+        deal.setBuyerUsername(offer.getBuyerUsername());
+        deal.setSellerUsername(seller.getUsername());
+        deal.setDealType(listing.getType());
+        deal.setStatus(DealStatus.ACTIVE);
+        if (listing.getType() == ListingType.SELL) {
+            deal.setOfferPrice(offer.getOfferPrice());
+            listing.setStatus(ListingStatus.SOLD);
+        } else {
+            deal.setBorrowStart(offer.getBorrowStart());
+            deal.setBorrowEnd(offer.getBorrowEnd());
+            // the borrow is due at the end of the requested return date
+            if (offer.getBorrowEnd() != null) {
+                deal.setDueAt(offer.getBorrowEnd().atTime(LocalTime.MAX));
+            }
+            listing.setStatus(ListingStatus.RESERVED);
+        }
+        DummyDataService.getInstance().addDeal(deal);
+        DummyDataService.getInstance().updateListing(listing);
+        NotificationService.offerAccepted(offer);
+    }
+
+    /**
+     * seller declines a pending offer, the listing stays live
+     */
+    public static synchronized void declineOffer(String offerId) {
+        User seller = SessionManager.requireRole(UserRole.SELLER);
+        Offer offer = requirePendingOffer(offerId);
+        requireOwnedListing(offer, seller);
+
+        offer.setStatus(OfferStatus.DECLINED);
+        offer.setRespondedAt(LocalDateTime.now());
+        DummyDataService.getInstance().updateOffer(offer);
+        NotificationService.offerDeclined(offer);
+    }
+
+    /**
+     * seller counters a pending offer with new terms (step 16)
+     * sell counters carry a price, lend counters carry a new return date
+     */
+    public static synchronized void counterOffer(String offerId, Double counterPrice,
+                                                  LocalDate counterEnd) {
+        User seller = SessionManager.requireRole(UserRole.SELLER);
+        Offer offer = requirePendingOffer(offerId);
+        requireOwnedListing(offer, seller);
+
+        if (offer.getType() == ListingType.GIVEAWAY) {
+            throw new IllegalStateException("giveaways cannot be countered");
+        }
+        if (offer.getType() == ListingType.SELL) {
+            if (counterPrice == null || !Double.isFinite(counterPrice) || counterPrice <= 0) {
+                throw new IllegalArgumentException("enter a counter price above zero");
+            }
+            offer.setCounterPrice(counterPrice);
+        } else {
+            if (counterEnd == null) {
+                throw new IllegalArgumentException("pick a new return date");
+            }
+            if (offer.getBorrowStart() != null && counterEnd.isBefore(offer.getBorrowStart())) {
+                throw new IllegalArgumentException("the new return date cannot be before the start date");
+            }
+            offer.setCounterEnd(counterEnd);
+        }
+
+        offer.setStatus(OfferStatus.COUNTERED);
+        offer.setRespondedAt(LocalDateTime.now());
+        DummyDataService.getInstance().updateOffer(offer);
+        NotificationService.offerCountered(offer);
+    }
+
+    // shared guard: offer exists and is still waiting for an answer
+    private static Offer requirePendingOffer(String offerId) {
+        Offer offer = offerId == null ? null : DummyDataService.getInstance().findOffer(offerId);
+        if (offer == null) {
+            throw new IllegalArgumentException("that offer no longer exists");
+        }
+        if (offer.getStatus() != OfferStatus.PENDING) {
+            throw new IllegalStateException("that offer was already answered");
+        }
+        return offer;
+    }
+
+    // shared guard: the listing exists and belongs to the signed-in seller
+    private static Listing requireOwnedListing(Offer offer, User seller) {
+        Listing listing = DummyDataService.getInstance().findListing(offer.getListingId());
+        if (listing == null) {
+            throw new IllegalStateException("the listing no longer exists");
+        }
+        if (!listing.getSellerUsername().equalsIgnoreCase(seller.getUsername())) {
+            throw new SecurityException("you can only answer offers on your own listings");
+        }
+        return listing;
     }
 
     // shared setup for both offer types

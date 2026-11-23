@@ -4,7 +4,9 @@ import com.hkust.marketplace.models.Listing;
 import com.hkust.marketplace.models.ListingType;
 import com.hkust.marketplace.models.Notification;
 import com.hkust.marketplace.models.User;
+import com.hkust.marketplace.models.UserRole;
 import com.hkust.marketplace.controllers.common.ListingDetailController;
+import com.hkust.marketplace.services.OfferService;
 import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.PasswordUtil;
 import com.hkust.marketplace.utils.SceneManager;
@@ -18,6 +20,7 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -295,7 +298,19 @@ public class BuyerDashboardController {
                 controller -> controller.setListingId(listing.getId()));
     }
 
+    // all three card actions go through OfferService so they really create offers
+    private User currentBuyer() {
+        try {
+            return SessionManager.requireRole(UserRole.BUYER);
+        } catch (SecurityException ex) {
+            new Alert(Alert.AlertType.WARNING, ex.getMessage()).showAndWait();
+            return null;
+        }
+    }
+
     private void showOfferDialog(Listing listing) {
+        User buyer = currentBuyer();
+        if (buyer == null) return;
         TextInputDialog dialog = new TextInputDialog(String.valueOf(listing.getPrice() != null ? listing.getPrice() : 0));
         dialog.setTitle("Make an Offer");
         dialog.setHeaderText("Offer for: " + listing.getTitle());
@@ -303,38 +318,78 @@ public class BuyerDashboardController {
         dialog.showAndWait().ifPresent(priceStr -> {
             try {
                 double price = Double.parseDouble(priceStr);
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Offer Submitted");
-                alert.setHeaderText(null);
-                alert.setContentText("Your offer of HK$" + price + " has been sent to " + listing.getSellerFullName() + ".\n\n(Demo only – no backend)");
-                alert.showAndWait();
+                OfferService.submitOffer(listing, buyer, price, null, null, null);
+                new Alert(Alert.AlertType.INFORMATION,
+                        "Your offer has been sent to " + listing.getSellerFullName() + ".").showAndWait();
+                showBrowse();
             } catch (NumberFormatException ex) {
                 new Alert(Alert.AlertType.ERROR, "Invalid price.").showAndWait();
+            } catch (RuntimeException ex) {
+                new Alert(Alert.AlertType.WARNING,
+                        ex.getMessage() == null ? "Something went wrong." : ex.getMessage()).showAndWait();
             }
         });
     }
 
     private void showBorrowDialog(Listing listing) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Borrow Request");
-        alert.setHeaderText("Request to borrow: " + listing.getTitle());
-        alert.setContentText("Proposed duration: " + (listing.getLendingDays() != null ? listing.getLendingDays() + " days" : "N/A") +
-                "\n\nSend borrow request to seller?");
-        alert.showAndWait().ifPresent(resp -> {
-            if (resp == ButtonType.OK) {
-                new Alert(Alert.AlertType.INFORMATION, "Borrow request sent!\n(Demo only)").showAndWait();
+        User buyer = currentBuyer();
+        if (buyer == null) return;
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Borrow Request");
+        dialog.setHeaderText("Request to borrow: " + listing.getTitle());
+
+        DatePicker startPicker = new DatePicker(LocalDate.now());
+        DatePicker endPicker = new DatePicker(LocalDate.now().plusDays(
+                listing.getLendingDays() == null ? 7 : listing.getLendingDays()));
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.add(new Label("Start date"), 0, 0);
+        grid.add(startPicker, 1, 0);
+        grid.add(new Label("End date"), 0, 1);
+        grid.add(endPicker, 1, 1);
+        Label hint = new Label("minimum borrow is 5 seconds for the demo, same day is fine");
+        hint.setWrapText(true);
+        hint.setStyle("-fx-text-fill: #9aa0b0; -fx-font-size: 11px;");
+        grid.add(hint, 0, 2, 2, 1);
+        dialog.getDialogPane().setContent(grid);
+
+        ButtonType send = new ButtonType("Send request", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(send, ButtonType.CANCEL);
+        dialog.showAndWait().ifPresent(button -> {
+            if (button != send) return;
+            try {
+                OfferService.submitOffer(listing, buyer, null,
+                        startPicker.getValue(), endPicker.getValue(), null);
+                new Alert(Alert.AlertType.INFORMATION,
+                        "Borrow request sent to " + listing.getSellerFullName() + ".").showAndWait();
+                showBrowse();
+            } catch (RuntimeException ex) {
+                new Alert(Alert.AlertType.WARNING,
+                        ex.getMessage() == null ? "Something went wrong." : ex.getMessage()).showAndWait();
             }
         });
     }
 
     private void claimItem(Listing listing) {
+        User buyer = currentBuyer();
+        if (buyer == null) return;
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Claim Item");
         alert.setHeaderText("Claim: " + listing.getTitle());
         alert.setContentText("Are you sure you want to claim this giveaway item?");
         alert.showAndWait().ifPresent(resp -> {
             if (resp == ButtonType.OK) {
-                new Alert(Alert.AlertType.INFORMATION, "Item claimed successfully!\n(Demo only)").showAndWait();
+                try {
+                    OfferService.claimGiveaway(listing, buyer);
+                    new Alert(Alert.AlertType.INFORMATION,
+                            "Item claimed successfully!").showAndWait();
+                    showBrowse();
+                } catch (RuntimeException ex) {
+                    new Alert(Alert.AlertType.WARNING,
+                            ex.getMessage() == null ? "Something went wrong." : ex.getMessage()).showAndWait();
+                }
             }
         });
     }
