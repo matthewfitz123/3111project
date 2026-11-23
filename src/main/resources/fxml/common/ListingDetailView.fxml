@@ -32,8 +32,8 @@
                     <Label fx:id="priceLabel" text="" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #003974;"/>
                     <Label fx:id="metaLabel" text="" wrapText="true" style="-fx-text-fill: #5a5a7a;"/>
                     <HBox spacing="10" alignment="CENTER_LEFT">
-                        <Button fx:id="actionButton" text="Make Offer" styleClass="btn-primary"/>
-                        <Button fx:id="chatButton" text="Chat" styleClass="btn-outline"/>
+                        <Button fx:id="actionButton" text="Make Offer" onAction="#handlePrimaryAction" styleClass="btn-primary"/>
+                        <Button fx:id="chatButton" text="Chat" onAction="#openChat" styleClass="btn-outline"/>
                         <Button fx:id="reportButton" text="Report Listing" onAction="#reportListing"
                                 styleClass="btn-outline"/>
                     </HBox>
@@ -112,6 +112,9 @@
                     <Label fx:id="sellerBioLabel" text="" wrapText="true"
                            style="-fx-text-fill: #5a5a7a; -fx-font-size: 13px;"/>
                 </VBox>
+
+                <!-- step 14 chat panel, scoped to this listing -->
+                <fx:include fx:id="chatPanel" source="ChatPanelView.fxml"/>
 
             </VBox>
         </ScrollPane>
