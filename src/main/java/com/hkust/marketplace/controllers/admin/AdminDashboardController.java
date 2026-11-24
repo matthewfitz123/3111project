@@ -32,6 +32,17 @@ public class AdminDashboardController {
         if (user != null) welcomeLabel.setText("Admin: " + user.getFullName());
         currentActiveBtn = btnReview;
         showReview();
+        updateNotificationBadge();
+    }
+
+    /**
+     * refreshes the unread count shown in the admin sidebar
+     */
+    private void updateNotificationBadge() {
+        User user = SessionManager.getCurrentUser();
+        int unread = user == null ? 0
+                : DummyDataService.getInstance().getUnreadNotificationCount(user.getUsername());
+        btnNotifications.setText("  Notifications" + (unread > 0 ? " (" + unread + ")" : ""));
     }
 
     private void setActive(Button btn, String title) {
@@ -247,34 +258,28 @@ public class AdminDashboardController {
         contentPane.getChildren().add(scroll);
     }
 
+    /**
+     * loads the shared notification board for the admin
+     */
     @FXML
     private void showNotifications() {
+        // same component as the buyer and seller portals
         setActive(btnNotifications, "Admin Notifications");
         contentPane.getChildren().clear();
-        VBox root = new VBox(12);
-        root.setPadding(new Insets(4));
-        List<Notification> notifs = DummyDataService.getInstance().getNotificationsFor("admin");
-        if (notifs.isEmpty()) {
-            root.getChildren().add(new Label("No notifications."));
-        } else {
-            for (Notification n : notifs) {
-                VBox item = new VBox(4);
-                item.getStyleClass().add("notif-item");
-                Label t = new Label(n.getTitle());
-                t.setStyle("-fx-font-weight: bold;");
-                Label m = new Label(n.getMessage());
-                m.setWrapText(true);
-                m.setStyle("-fx-text-fill: #5a5a7a;");
-                Label meta = new Label(n.getCategory() + " · " +
-                        n.getTimestamp().format(DateTimeFormatter.ofPattern("dd MMM HH:mm")));
-                meta.setStyle("-fx-text-fill: #9aa0b0; -fx-font-size: 11px;");
-                item.getChildren().addAll(t, m, meta);
-                root.getChildren().add(item);
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/fxml/common/NotificationBoardView.fxml"));
+            javafx.scene.Parent root = loader.load();
+            com.hkust.marketplace.controllers.common.NotificationBoardController board =
+                    loader.getController();
+            if (board != null) {
+                board.setOnChanged(this::updateNotificationBadge);
             }
+            contentPane.getChildren().add(root);
+        } catch (IOException ex) {
+            new Alert(Alert.AlertType.ERROR,
+                    "Could not load the notification board.\n" + ex.getMessage()).showAndWait();
         }
-        ScrollPane scroll = new ScrollPane(root);
-        scroll.setFitToWidth(true);
-        contentPane.getChildren().add(scroll);
     }
 
     @FXML
