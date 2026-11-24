@@ -219,6 +219,10 @@ public final class NotificationService {
         notify(deal.getBuyerUsername(), "Borrow Expired",
                 "the borrow period for '" + deal.getListingTitle() + "' has ended",
                 SYSTEM);
+        // the seller should see the item is available again too
+        notify(deal.getSellerUsername(), "Borrow Ended",
+                "'" + deal.getListingTitle() + "' was automatically returned and is live again",
+                SYSTEM);
     }
 
     // looks up a listing title for offers, falls back to the id when it is gone
