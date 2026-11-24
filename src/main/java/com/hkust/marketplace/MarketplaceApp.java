@@ -1,5 +1,6 @@
 package com.hkust.marketplace;
 
+import com.hkust.marketplace.services.BorrowScheduler;
 import com.hkust.marketplace.utils.SceneManager;
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -21,6 +22,12 @@ public class MarketplaceApp extends Application {
         primaryStage.setMinWidth(1100);
         primaryStage.setMinHeight(700);
         primaryStage.show();
+        BorrowScheduler.start();
+    }
+
+    @Override
+    public void stop() {
+        BorrowScheduler.shutdown();
     }
 
     public static void main(String[] args) {
