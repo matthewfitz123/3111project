@@ -8,7 +8,7 @@ import javafx.stage.Stage;
 /**
  * HKUST Marketplace - Main Application Entry Point
  * Frontend-only demo / skeleton for student development.
- *
+ * -
  * This application provides a complete UI skeleton for the Buyer, Seller and Admin portals.
  * All data is in-memory / dummy. Backend integration points are marked with TODO comments.
  */
@@ -29,7 +29,7 @@ public class MarketplaceApp extends Application {
     public void stop() {
         BorrowScheduler.shutdown();
     }
-
+    @SuppressWarnings("unused")
     public static void main(String[] args) {
         launch(args);
     }
