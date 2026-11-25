@@ -34,7 +34,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
- * listing detail screen for task 1.4
+ * listing detail screen for task 1.4 with the task 1.5 buyer actions
  * shows one listing with up to six photos, all fields, seller info,
  * type actions, chat, favourite and report controls
  * opening it also bumps the view counter
@@ -250,6 +250,10 @@ public class ListingDetailController {
         }
     }
 
+    /**
+     * shows the type-specific action label and enables it only for a buyer
+     * while the listing is still live and no action has been sent yet (task 1.5)
+     */
     private void renderActions() {
         boolean buyer = SessionManager.isBuyer();
         boolean live = listing.getStatus() == ListingStatus.LIVE;
@@ -340,7 +344,9 @@ public class ListingDetailController {
     }
 
     /**
-     * runs the action button for the current listing type
+     * runs the task 1.5 action for the current listing type
+     * SELL asks for a price, LEND asks for borrow dates and GIVEAWAY asks for one claim;
+     * OfferService re-checks that the listing is still live before anything is stored
      */
     @FXML
     private void handlePrimaryAction() {
@@ -366,7 +372,10 @@ public class ListingDetailController {
         }
     }
 
-    // price offer dialog for sell listings
+    /**
+     * asks for a SELL price and submits it through OfferService (task 1.5)
+     * then shows the confirmation alert and reloads the listing state
+     */
     private void askForOffer(User buyer) {
         TextInputDialog dialog = new TextInputDialog(
                 listing.getPrice() == null ? "" : String.format("%.0f", listing.getPrice()));
@@ -389,7 +398,10 @@ public class ListingDetailController {
         });
     }
 
-    // borrow request dialog with the two dates
+    /**
+     * asks for LEND start/end dates and submits the borrow request (task 1.5)
+     * same-day is allowed because the demo minimum borrow time is 5 seconds
+     */
     private void askForBorrow(User buyer) {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Borrow Request");
@@ -431,7 +443,9 @@ public class ListingDetailController {
         });
     }
 
-    // giveaway claim is one confirmation dialog and one service call
+    /**
+     * asks for one confirmation then claims the giveaway through OfferService (task 1.5)
+     */
     private void askForClaim(User buyer) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Claim Giveaway");
@@ -453,7 +467,9 @@ public class ListingDetailController {
         });
     }
 
-    // reload the listing after an offer or claim and redraw without counting a view
+    /**
+     * reloads the listing after an offer or claim and redraws without counting another view
+     */
     private void reloadAfterAction() {
         listing = DummyDataService.getInstance().findListing(listing.getId());
         if (listing == null) {
