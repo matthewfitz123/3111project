@@ -149,13 +149,13 @@ public class DummyDataService {
         deals.add(d1);
 
         // demo notifications
-        notifications.add(new Notification("alice", "Offer Accepted",
+        addNotification(new Notification("alice", "Offer Accepted",
                 "Charlie accepted your offer of HK$160 for Calculus Textbook.", "Offer"));
-        notifications.add(new Notification("charlie", "New Offer Received",
+        addNotification(new Notification("charlie", "New Offer Received",
                 "Alice offered HK$160 for your Calculus Textbook.", "Offer"));
-        notifications.add(new Notification("diana", "Listing Pending",
+        addNotification(new Notification("diana", "Listing Pending",
                 "Your Mini Fridge listing is awaiting admin review.", "System"));
-        notifications.add(new Notification("admin", "New Listing Submitted",
+        addNotification(new Notification("admin", "New Listing Submitted",
                 "Diana submitted 'Mini Fridge' for review.", "System"));
 
         // demo review

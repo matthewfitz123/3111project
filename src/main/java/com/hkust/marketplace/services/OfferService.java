@@ -101,6 +101,7 @@ public final class OfferService {
         deal.setDealType(ListingType.GIVEAWAY);
         deal.setStatus(DealStatus.ACTIVE);
         DummyDataService.getInstance().addDeal(deal);
+        declineOtherOffers(fresh, offer.getId());
 
         NotificationService.offerReceived(offer);
         NotificationService.notify(buyer.getUsername(), "Claim Confirmed",
@@ -149,6 +150,7 @@ public final class OfferService {
         }
         DummyDataService.getInstance().addDeal(deal);
         DummyDataService.getInstance().updateListing(listing);
+        declineOtherOffers(listing, offer.getId());
         NotificationService.offerAccepted(offer);
     }
 
@@ -256,11 +258,31 @@ public final class OfferService {
         DummyDataService.getInstance().updateOffer(offer);
         DummyDataService.getInstance().addDeal(deal);
         DummyDataService.getInstance().updateListing(listing);
+        declineOtherOffers(listing, offer.getId());
 
         NotificationService.offerAccepted(offer);
         NotificationService.notify(listing.getSellerUsername(), "Counter Accepted",
                 buyer.getFullName() + " accepted your counter for '" + listing.getTitle() + "'",
                 "Offer");
+    }
+
+    /**
+     * once a listing is taken, every other open offer on it is declined
+     * so buyers are told and the seller's offer list stays accurate
+     */
+    private static void declineOtherOffers(Listing listing, String winningOfferId) {
+        for (Offer other : DummyDataService.getInstance().getOffersForListing(listing.getId())) {
+            if (other.getId() == null || other.getId().equals(winningOfferId)) {
+                continue;
+            }
+            if (other.getStatus() == OfferStatus.PENDING
+                    || other.getStatus() == OfferStatus.COUNTERED) {
+                other.setStatus(OfferStatus.DECLINED);
+                other.setRespondedAt(LocalDateTime.now());
+                DummyDataService.getInstance().updateOffer(other);
+                NotificationService.offerDeclined(other);
+            }
+        }
     }
 
     // shared guard: offer exists and is still waiting for an answer

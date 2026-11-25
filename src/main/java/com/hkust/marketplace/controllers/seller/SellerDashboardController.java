@@ -2,6 +2,7 @@ package com.hkust.marketplace.controllers.seller;
 
 import com.hkust.marketplace.models.*;
 import com.hkust.marketplace.controllers.common.ListingDetailController;
+import com.hkust.marketplace.services.ListingService;
 import com.hkust.marketplace.services.OfferService;
 import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.PasswordUtil;
@@ -158,19 +159,14 @@ public class SellerDashboardController {
      * true when the status allows edits and no offer is waiting
      */
     private boolean canModify(Listing listing) {
-        boolean editableStatus = listing.getStatus() == ListingStatus.LIVE
-                || listing.getStatus() == ListingStatus.PENDING_REVIEW
-                || listing.getStatus() == ListingStatus.REJECTED;
-        return editableStatus && pendingOfferCount(listing) == 0;
+        return ListingService.canModify(listing);
     }
 
     /**
      * counts only offers that still need an answer
      */
     private long pendingOfferCount(Listing listing) {
-        return DummyDataService.getInstance().getOffersForListing(listing.getId()).stream()
-                .filter(offer -> offer.getStatus() == OfferStatus.PENDING)
-                .count();
+        return ListingService.pendingOfferCount(listing);
     }
 
     /**
@@ -294,22 +290,13 @@ public class SellerDashboardController {
                 }
             }
 
-            listing.setTitle(title);
-            listing.setDescription(descriptionField.getText() == null
-                    ? "" : descriptionField.getText().trim());
-            listing.setCategory(categoryBox.getValue());
-            listing.setCondition(conditionBox.getValue());
-            listing.setMeetupLocation(meetupBox.getValue());
-            listing.setPrice(listing.getType() == ListingType.SELL ? price : null);
-            listing.setLendingDays(listing.getType() == ListingType.LEND ? days : null);
-
-            // a rejected listing goes back into the review queue after an edit
-            if (listing.getStatus() == ListingStatus.REJECTED) {
-                listing.setStatus(ListingStatus.PENDING_REVIEW);
-                listing.setRejectionReason(null);
-                listing.setReviewedAt(null);
+            try {
+                ListingService.editListing(listing.getId(), title, descriptionField.getText(),
+                        categoryBox.getValue(), conditionBox.getValue(), meetupBox.getValue(),
+                        price, days);
+            } catch (RuntimeException ex) {
+                new Alert(Alert.AlertType.WARNING, ex.getMessage()).showAndWait();
             }
-            DummyDataService.getInstance().updateListing(listing);
             showMyListings();
         });
     }
@@ -334,7 +321,11 @@ public class SellerDashboardController {
         if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
             return;
         }
-        DummyDataService.getInstance().removeListing(listing.getId());
+        try {
+            ListingService.deleteListing(listing.getId());
+        } catch (RuntimeException ex) {
+            new Alert(Alert.AlertType.WARNING, ex.getMessage()).showAndWait();
+        }
         showMyListings();
     }
 
