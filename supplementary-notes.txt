@@ -1,16 +1,10 @@
 HKUST Marketplace - supplementary notes
 ======================================
 
-What this file is for
----------------------
-This is a plain summary of what is actually working, how it was tested, and what is
-still missing. I have kept it separate from documentation.md because documentation.md
-was written early for tasks 1.1 and 1.2 only.
-
 Current status
 --------------
 Steps 1 to 21 are implemented and the project compiles.
-Steps 22 to 28 are being done by other group members:
+Steps 22 to 28 are being done:
   22 seller reviews
   23 buyer deal history
   24 admin all deals
@@ -54,23 +48,8 @@ What is still missing or limited
   already has averageRating and ratingCount, and notifications for reviews exist, but
   the review screen and reply flow are still to come.
 
-How to run the tests
---------------------
-From the project folder:
 
-    Windows:
-        .\mvnw.cmd test
-
-    macOS / Linux:
-        ./mvnw test
-
-At the time of writing the fixed build was run with Java 21. On a Mac I also used:
-
-    mvn test -Djavafx.platform=mac
-
-because the pom defaults the JavaFX classifier to win for the Windows teammate.
-
-Test result
+Test result(up to and including step 21)
 -----------
 68 tests, 0 failures, 0 errors.
 Test classes cover:
