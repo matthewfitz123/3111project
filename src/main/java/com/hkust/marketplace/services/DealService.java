@@ -69,6 +69,7 @@ public final class DealService {
         }
 
         deal.setStatus(DealStatus.COMPLETED);
+        deal.setRated(false);
         deal.setCompletedAt(LocalDateTime.now());
         // the listing stays sold or given, it is not available again
         NotificationService.dealCompleted(deal);

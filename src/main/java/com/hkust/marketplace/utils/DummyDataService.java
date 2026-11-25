@@ -167,6 +167,11 @@ public class DummyDataService {
         r1.setRating(5);
         r1.setComment("Very smooth transaction, book in excellent condition!");
         reviews.add(r1);
+
+        // seller ratings always come from the stored reviews
+        for (User seller : getUsersByRole(UserRole.SELLER)) {
+            recalculateSellerRating(seller.getUsername());
+        }
     }
 
     /**
@@ -361,6 +366,19 @@ public class DummyDataService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * every review for a seller including hidden ones, for the seller's own screen
+     */
+    public List<Review> getAllReviewsForSeller(String username) {
+        return reviews.stream()
+                .filter(r -> r.getSellerUsername().equalsIgnoreCase(username))
+                .collect(Collectors.toList());
+    }
+
+    public Review findReview(String id) {
+        return reviews.stream().filter(r -> r.getId().equals(id)).findFirst().orElse(null);
+    }
+
     public List<Review> getAllReviews() {
         return new ArrayList<>(reviews);
     }
@@ -370,6 +388,20 @@ public class DummyDataService {
             r.setId("R" + reviewIdCounter.getAndIncrement());
         }
         reviews.add(r);
+    }
+
+    /**
+     * average and count of a seller's visible reviews, call after any review change
+     */
+    public void recalculateSellerRating(String sellerUsername) {
+        User seller = findUser(sellerUsername);
+        if (seller == null) {
+            return;
+        }
+        List<Review> visible = getReviewsForSeller(sellerUsername);
+        double average = visible.stream().mapToInt(Review::getRating).average().orElse(0.0);
+        seller.setAverageRating(Math.round(average * 10) / 10.0);
+        seller.setRatingCount(visible.size());
     }
 
     // ========== offer methods ==========

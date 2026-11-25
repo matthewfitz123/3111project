@@ -246,11 +246,21 @@ public class AdminDashboardController {
             comment.setWrapText(true);
             comment.setStyle("-fx-text-fill: #5a5a7a;");
             info.getChildren().addAll(stars, comment);
+            if (r.isFlagged()) {
+                Label flagged = new Label("Flagged by seller" + (r.getFlagReason() == null
+                        || r.getFlagReason().isBlank() ? "" : ": " + r.getFlagReason()));
+                flagged.setStyle("-fx-text-fill: #c62828; -fx-font-size: 12px;");
+                info.getChildren().add(flagged);
+            }
 
             Button hide = new Button(r.isHidden() ? "Unhide" : "Hide");
             hide.getStyleClass().addAll("btn-outline", "btn-sm");
             hide.setOnAction(e -> {
                 r.setHidden(!r.isHidden());
+                if (!r.isHidden()) {
+                    r.setFlagged(false);
+                }
+                DummyDataService.getInstance().recalculateSellerRating(r.getSellerUsername());
                 showRatings();
             });
             row.getChildren().addAll(info, hide);

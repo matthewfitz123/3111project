@@ -12,6 +12,7 @@ import com.hkust.marketplace.models.UserRole;
 import com.hkust.marketplace.controllers.common.ListingDetailController;
 import com.hkust.marketplace.services.DealService;
 import com.hkust.marketplace.services.OfferService;
+import com.hkust.marketplace.services.ReviewService;
 import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.PasswordUtil;
 import com.hkust.marketplace.utils.SceneManager;
@@ -610,11 +611,25 @@ public class BuyerDashboardController {
         } else if (active) {
             Button complete = new Button("Mark complete");
             complete.getStyleClass().addAll("btn-success", "btn-sm");
-            complete.setOnAction(e -> runDealAction(
-                    "Confirm you received '" + deal.getListingTitle() + "'? This closes the deal.",
-                    "Deal completed.",
-                    () -> DealService.markComplete(deal.getId())));
+            complete.setOnAction(e -> {
+                boolean done = runDealAction(
+                        "Confirm you received '" + deal.getListingTitle() + "'? This closes the deal.",
+                        "Deal completed. You can now rate " + sellerName + ".",
+                        () -> DealService.markComplete(deal.getId()));
+                if (done) {
+                    showReviewDialog(deal);
+                }
+            });
             actions.getChildren().add(complete);
+        } else if (status == DealStatus.COMPLETED && !deal.isRated()) {
+            Button review = new Button("Leave review");
+            review.getStyleClass().addAll("btn-gold", "btn-sm");
+            review.setOnAction(e -> showReviewDialog(deal));
+            actions.getChildren().add(review);
+        } else if (status == DealStatus.COMPLETED) {
+            Label reviewed = new Label("Reviewed");
+            reviewed.setStyle("-fx-text-fill: #2e7d32; -fx-font-size: 12px;");
+            actions.getChildren().add(reviewed);
         }
 
         card.getChildren().addAll(heading, from, terms, metaLabel, actions);
@@ -622,21 +637,75 @@ public class BuyerDashboardController {
     }
 
     // asks first, runs the service call, then redraws so the new status shows
-    private void runDealAction(String question, String doneMessage, Runnable action) {
+    private boolean runDealAction(String question, String doneMessage, Runnable action) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, question);
         confirm.setTitle("My Deals");
         confirm.setHeaderText(null);
         if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
-            return;
+            return false;
         }
+        boolean done = false;
         try {
             action.run();
+            done = true;
             new Alert(Alert.AlertType.INFORMATION, doneMessage).showAndWait();
         } catch (RuntimeException ex) {
             new Alert(Alert.AlertType.WARNING,
                     ex.getMessage() == null ? "Something went wrong." : ex.getMessage()).showAndWait();
         }
         showMyDeals();
+        return done;
+    }
+
+    /**
+     * star rating and comment for a completed deal (step 22)
+     */
+    private void showReviewDialog(Deal deal) {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Rate Seller");
+        dialog.setHeaderText("How was your deal for '" + deal.getListingTitle() + "'?");
+
+        ComboBox<Integer> ratingBox = new ComboBox<>(FXCollections.observableArrayList(5, 4, 3, 2, 1));
+        ratingBox.setValue(5);
+        ratingBox.setButtonCell(starCell());
+        ratingBox.setCellFactory(list -> starCell());
+
+        TextArea commentArea = new TextArea();
+        commentArea.setPromptText("Optional comment for the seller");
+        commentArea.setPrefRowCount(4);
+        commentArea.setWrapText(true);
+
+        VBox content = new VBox(8, new Label("Rating"), ratingBox, new Label("Comment"), commentArea);
+        content.setPadding(new Insets(10));
+        dialog.getDialogPane().setContent(content);
+
+        ButtonType submit = new ButtonType("Submit review", ButtonBar.ButtonData.OK_DONE);
+        ButtonType later = new ButtonType("Later", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(submit, later);
+
+        if (dialog.showAndWait().orElse(later) != submit) {
+            return;
+        }
+        try {
+            ReviewService.submitReview(deal, SessionManager.getCurrentUser(),
+                    ratingBox.getValue() == null ? 0 : ratingBox.getValue(), commentArea.getText());
+            new Alert(Alert.AlertType.INFORMATION, "Thanks, your review was posted.").showAndWait();
+        } catch (RuntimeException ex) {
+            new Alert(Alert.AlertType.WARNING,
+                    ex.getMessage() == null ? "Could not post the review." : ex.getMessage()).showAndWait();
+        }
+        showMyDeals();
+    }
+
+    private ListCell<Integer> starCell() {
+        return new ListCell<>() {
+            @Override
+            protected void updateItem(Integer value, boolean empty) {
+                super.updateItem(value, empty);
+                setText(empty || value == null ? null
+                        : "★".repeat(value) + "☆".repeat(5 - value) + "  (" + value + ")");
+            }
+        };
     }
 
     @FXML

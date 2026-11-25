@@ -7,6 +7,7 @@ import com.hkust.marketplace.models.Notification;
 import com.hkust.marketplace.models.Offer;
 import com.hkust.marketplace.models.Review;
 import com.hkust.marketplace.models.User;
+import com.hkust.marketplace.models.UserRole;
 import com.hkust.marketplace.utils.DummyDataService;
 
 /**
@@ -19,6 +20,7 @@ public final class NotificationService {
     private static final String OFFER = "Offer";
     private static final String CHAT = "Chat";
     private static final String REVIEW = "Rating";
+    private static final String MODERATION = "Moderation";
 
     private NotificationService() {
         // static helpers only
@@ -170,6 +172,22 @@ public final class NotificationService {
         notify(review.getBuyerUsername(), "Review Reply",
                 "the seller replied to your review of '" + review.getListingTitle() + "'",
                 REVIEW);
+    }
+
+    /**
+     * tells every admin a seller flagged a review for moderation
+     */
+    public static void reviewFlagged(Review review) {
+        if (review == null) {
+            return;
+        }
+        String message = displayName(review.getSellerUsername()) + " flagged @"
+                + review.getBuyerUsername() + "'s review of '" + review.getListingTitle() + "'"
+                + (review.getFlagReason() == null || review.getFlagReason().isBlank()
+                ? "" : ": " + review.getFlagReason());
+        for (User admin : DummyDataService.getInstance().getUsersByRole(UserRole.ADMIN)) {
+            notify(admin.getUsername(), "Review Flagged", message, MODERATION);
+        }
     }
 
     /**
