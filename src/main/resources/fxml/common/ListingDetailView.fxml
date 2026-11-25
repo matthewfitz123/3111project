@@ -111,6 +111,7 @@
                     </HBox>
                     <Label fx:id="sellerBioLabel" text="" wrapText="true"
                            style="-fx-text-fill: #5a5a7a; -fx-font-size: 13px;"/>
+                    <VBox fx:id="sellerReviewsBox" spacing="8"/>
                 </VBox>
 
                 <!-- step 14 chat panel, scoped to this listing -->

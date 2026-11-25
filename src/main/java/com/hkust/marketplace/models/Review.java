@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 public class Review {
     private String id;
+    private String dealId;
     private String sellerUsername;
     private String buyerUsername;
     private String listingTitle;
@@ -21,6 +22,9 @@ public class Review {
     // Getters & Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
+
+    public String getDealId() { return dealId; }
+    public void setDealId(String dealId) { this.dealId = dealId; }
 
     public String getSellerUsername() { return sellerUsername; }
     public void setSellerUsername(String sellerUsername) { this.sellerUsername = sellerUsername; }

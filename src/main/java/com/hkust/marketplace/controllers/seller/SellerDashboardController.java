@@ -731,7 +731,13 @@ public class SellerDashboardController {
             new Alert(Alert.AlertType.INFORMATION, "Profile saved.").showAndWait();
         });
 
+        Label rating = new Label(user == null || user.getRatingCount() == 0 ? "Rating: no reviews yet"
+                : String.format("Rating: %.1f / 5 from %d review(s)",
+                user.getAverageRating(), user.getRatingCount()));
+        rating.setStyle("-fx-text-fill: #A68137; -fx-font-weight: bold;");
+
         form.getChildren().addAll(
+                rating,
                 new Label("Full Name"), name,
                 new Label("New Password"), pass,
                 new Label("Confirm New Password"), confirmPass,
