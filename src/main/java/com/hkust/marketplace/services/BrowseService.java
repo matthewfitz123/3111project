@@ -6,6 +6,7 @@ import com.hkust.marketplace.models.User;
 import com.hkust.marketplace.models.UserRole;
 import com.hkust.marketplace.utils.DummyDataService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,6 +40,25 @@ public final class BrowseService {
             }
         }
         return null;
+    }
+
+    /**
+     * returns up to six usable photo paths for the listing detail gallery (task 1.4)
+     */
+    public static List<String> photoPaths(Listing listing) {
+        List<String> paths = new ArrayList<>();
+        if (listing == null || listing.getPhotoPaths() == null) {
+            return paths;
+        }
+        for (String path : listing.getPhotoPaths()) {
+            if (paths.size() >= 6) {
+                break;
+            }
+            if (path != null && !path.isBlank()) {
+                paths.add(path);
+            }
+        }
+        return paths;
     }
 
     /**

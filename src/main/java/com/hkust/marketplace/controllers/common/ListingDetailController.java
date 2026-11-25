@@ -10,6 +10,8 @@ import com.hkust.marketplace.models.UserRole;
 import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.SceneManager;
 import com.hkust.marketplace.utils.SessionManager;
+import com.hkust.marketplace.services.BrowseService;
+import com.hkust.marketplace.services.FavouriteService;
 import com.hkust.marketplace.services.NotificationService;
 import com.hkust.marketplace.services.OfferService;
 import javafx.fxml.FXML;
@@ -32,8 +34,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
- * listing detail screen (step 12)
- * shows one listing with all photos, fields and seller info
+ * listing detail screen for task 1.4
+ * shows one listing with up to six photos, all fields, seller info,
+ * type actions, chat, favourite and report controls
  * opening it also bumps the view counter
  */
 public class ListingDetailController {
@@ -54,6 +57,7 @@ public class ListingDetailController {
     @FXML private javafx.scene.control.Button actionButton;
     @FXML private javafx.scene.control.Button chatButton;
     @FXML private javafx.scene.control.Button reportButton;
+    @FXML private javafx.scene.control.Button favouriteButton;
 
     @FXML private FlowPane photoGallery;
 
@@ -70,6 +74,7 @@ public class ListingDetailController {
     @FXML private Label sellerAvatar;
     @FXML private Label sellerNameLabel;
     @FXML private Label sellerUsernameLabel;
+    @FXML private Label sellerVerifiedBadge;
     @FXML private Label sellerRatingStars;
     @FXML private Label sellerRatingCountLabel;
     @FXML private VBox sellerReviewsBox;
@@ -145,7 +150,7 @@ public class ListingDetailController {
 
     private void renderPhotos() {
         photoGallery.getChildren().clear();
-        List<String> paths = listing.getPhotoPaths();
+        List<String> paths = BrowseService.photoPaths(listing);
         if (paths == null || paths.isEmpty()) {
             Label none = new Label("No photos uploaded for this listing.");
             none.setStyle("-fx-text-fill: #9aa0b0; -fx-font-size: 12px;");
@@ -184,6 +189,8 @@ public class ListingDetailController {
             sellerRatingStars.setText("");
             sellerRatingCountLabel.setText("");
             sellerBioLabel.setText("");
+            sellerVerifiedBadge.setVisible(false);
+            sellerVerifiedBadge.setManaged(false);
             sellerReviewsBox.getChildren().clear();
             return;
         }
@@ -191,6 +198,10 @@ public class ListingDetailController {
         sellerAvatar.setText(name.isBlank() ? "?" : name.substring(0, 1).toUpperCase());
         sellerNameLabel.setText(name);
         sellerUsernameLabel.setText("@" + seller.getUsername());
+        boolean verified = BrowseService.showVerifiedBadge(listing);
+        sellerVerifiedBadge.setText("HKUST Verified");
+        sellerVerifiedBadge.setVisible(verified);
+        sellerVerifiedBadge.setManaged(verified);
         sellerRatingStars.setText(stars(seller.getAverageRating()));
         sellerRatingCountLabel.setText(String.format("%.1f / 5  ·  %d ratings",
                 seller.getAverageRating(), seller.getRatingCount()));
@@ -256,6 +267,9 @@ public class ListingDetailController {
         actionButton.setDisable(!buyer || !live || actionSent);
         chatButton.setDisable(chatPanelController == null);
         reportButton.setDisable(!buyer || !live);
+        favouriteButton.setText(FavouriteService.isFavourite(SessionManager.getCurrentUser(), listing)
+                ? "♥ Favourited" : "♥ Favourite");
+        favouriteButton.setDisable(!buyer);
 
         if (!live) {
             actionHintLabel.setText("This listing is no longer live, so offers and claims are disabled.");
@@ -266,6 +280,25 @@ public class ListingDetailController {
         } else {
             actionHintLabel.setText("Pick an action, or say hello in the chat below.");
         }
+    }
+
+    /**
+     * toggles the current listing in the buyer's favourites (task 1.4)
+     */
+    @FXML
+    private void toggleFavourite() {
+        User buyer;
+        try {
+            buyer = SessionManager.requireRole(UserRole.BUYER);
+        } catch (SecurityException ex) {
+            showWarning(ex.getMessage());
+            return;
+        }
+        if (listing == null) {
+            return;
+        }
+        boolean saved = FavouriteService.toggle(buyer, listing);
+        favouriteButton.setText(saved ? "♥ Favourited" : "♥ Favourite");
     }
 
     /**
@@ -508,6 +541,7 @@ public class ListingDetailController {
         actionButton.setDisable(true);
         chatButton.setDisable(true);
         reportButton.setDisable(true);
+        favouriteButton.setDisable(true);
         photoGallery.getChildren().clear();
         new Alert(Alert.AlertType.WARNING, "This listing could not be found.").showAndWait();
     }

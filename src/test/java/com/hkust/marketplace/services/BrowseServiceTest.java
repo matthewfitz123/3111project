@@ -51,6 +51,20 @@ class BrowseServiceTest {
     }
 
     @Test
+    void detailPhotosAreCappedAtSix() {
+        Listing listing = listing("charlie", ListingStatus.LIVE);
+        for (int i = 0; i < 8; i++) {
+            listing.getPhotoPaths().add("/images/uploads/" + i + ".png");
+        }
+
+        List<String> paths = BrowseService.photoPaths(listing);
+
+        assertEquals(6, paths.size());
+        assertEquals("/images/uploads/0.png", paths.get(0));
+        assertEquals("/images/uploads/5.png", paths.get(5));
+    }
+
+    @Test
     void sellerRatingLabelUsesSellerAccount() {
         DummyDataService.getInstance().findUser("charlie").setAverageRating(4.7);
         DummyDataService.getInstance().findUser("charlie").setRatingCount(12);

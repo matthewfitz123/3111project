@@ -12,7 +12,7 @@ JUnit 5 tests run through Maven Surefire. JaCoCo is attached for coverage.
 
 - Date: 2026-11-25
 - Command: `./mvnw test`
-- Tests run: **90**
+- Tests run: **94**
 - Failures: **0**
 - Errors: **0**
 - Skipped: **0**
@@ -24,9 +24,10 @@ JUnit 5 tests run through Maven Surefire. JaCoCo is attached for coverage.
 |---|---:|
 | `services.AuthServiceTest` | 8 |
 | `services.BorrowSchedulerTest` | 2 |
-| `services.BrowseServiceTest` | 6 |
+| `services.BrowseServiceTest` | 7 |
 | `services.DealHistoryServiceTest` | 3 |
 | `services.DealServiceTest` | 4 |
+| `services.FavouriteServiceTest` | 3 |
 | `services.ListingDealEdgeTest` | 6 |
 | `services.ListingServiceTest` | 6 |
 | `services.NotificationEdgeTest` | 3 |
@@ -39,7 +40,7 @@ JUnit 5 tests run through Maven Surefire. JaCoCo is attached for coverage.
 | `utils.PasswordRulesTest` | 5 |
 | `utils.PasswordUtilTest` | 5 |
 | `utils.SessionManagerTest` | 4 |
-| **Total** | **90** |
+| **Total** | **94** |
 
 ## Task 1.1 Buyer Registration
 
@@ -72,7 +73,19 @@ Added `services/BrowseServiceTest` for the browse-card data rules, and reused th
 
 | Test class | Tests | What it covers |
 |---|---:|---|
-| `services.BrowseServiceTest` | 6 | Live-only listing selection, primary photo path choice, seller rating label, HKUST Verified badge rule, availability label, and sell/lend/giveaway display labels. |
+| `services.BrowseServiceTest` | 7 | Live-only listing selection, primary photo path choice, detail photo cap, seller rating label, HKUST Verified badge rule, availability label, and sell/lend/giveaway display labels. |
 | `utils.DummyDataServiceTest` | 8 | In-memory listing/user store basics and seeded data used by the browse screen. |
 
 The JavaFX card is thin: `BuyerDashboardController#createListingCard` renders thumbnail, badges, seller rating and actions, while `BrowseService` owns the testable card data rules. Screen behavior is verified manually and by screenshots.
+
+## Task 1.4 Listing Detail
+
+Added `services/FavouriteServiceTest` for the like/favourite rules and extended `BrowseServiceTest` for the detail photo cap.
+
+| Test class | Tests | What it covers |
+|---|---:|---|
+| `services.FavouriteServiceTest` | 3 | Favourite toggle add/remove, per-user favourites list, null/missing input handling. |
+| `services.BrowseServiceTest` | 7 | Detail gallery photo cap plus the browse-card rules reused by the detail screen. |
+| `utils.DummyDataServiceTest` | 8 | In-memory listing/user store basics used by detail rendering. |
+
+The JavaFX detail screen is thin: `ListingDetailController` renders photos/fields/seller/actions and delegates favourite state to `FavouriteService` and badge/photo rules to `BrowseService`. Screen behavior is verified manually and by screenshots.

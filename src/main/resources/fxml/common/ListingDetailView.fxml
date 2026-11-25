@@ -34,6 +34,7 @@
                     <HBox spacing="10" alignment="CENTER_LEFT">
                         <Button fx:id="actionButton" text="Make Offer" onAction="#handlePrimaryAction" styleClass="btn-primary"/>
                         <Button fx:id="chatButton" text="Chat" onAction="#openChat" styleClass="btn-outline"/>
+                        <Button fx:id="favouriteButton" text="♥ Favourite" onAction="#toggleFavourite" styleClass="btn-outline"/>
                         <Button fx:id="reportButton" text="Report Listing" onAction="#reportListing"
                                 styleClass="btn-outline"/>
                     </HBox>
@@ -100,6 +101,8 @@
                                    style="-fx-font-size: 15px; -fx-font-weight: bold;"/>
                             <Label fx:id="sellerUsernameLabel" text=""
                                    style="-fx-text-fill: #5a5a7a; -fx-font-size: 12px;"/>
+                            <Label fx:id="sellerVerifiedBadge" text="HKUST Verified" styleClass="badge, badge-live"
+                                   visible="false" managed="false"/>
                         </VBox>
                         <Region HBox.hgrow="ALWAYS"/>
                         <VBox alignment="CENTER_RIGHT" spacing="2">
