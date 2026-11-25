@@ -6,8 +6,8 @@ From Matthew’s latest `index.html`:
 
 | Scope | Instruction | Branch |
 |---|---:|---:|
-| Overall | 86% | 67% (574 of 848) |
-| `services` | | 69% |
-| `utils` | | 62% |
+| Overall | 86.5% | 67.7% (584 of 862) |
+| `services` | | 69.6% |
+| `utils` | | 62.7% |
 
-Overall branch coverage is 67%, which meets the requirement of more than 65%.
+Overall branch coverage is 67.7%, which meets the requirement of more than 65%.

@@ -2,7 +2,7 @@
 
 Campus marketplace for buyers, sellers, and one seeded admin. Matthew is not in the H group, so H-Group items are out of scope and are not described here as delivered. Buyer favourites (1.6) and seller AI descriptions (2.4) are skipped entirely.
 
-The behaviour below is implemented in the service and in-memory store. JavaFX controllers call those methods and are not unit tested.
+The behaviour below is implemented in the service layer, with a local SQLite database behind it. JavaFX controllers call those methods and are not unit tested.
 
 ## Setup
 
@@ -15,6 +15,12 @@ Requires Java 21 and Maven. From the project root:
 
 `javafx:run` starts `com.hkust.marketplace.MarketplaceApp`. `./mvnw test` runs JUnit 5 and writes JaCoCo HTML to `target/site/jacoco/index.html` (not committed). Coverage is measured on `services` and `utils`. Controllers and model classes are excluded.
 
+## Database
+
+The app uses a local SQLite database at `data/marketplace.db`. The JDBC URL can be overridden with `-Dmarketplace.db.url=...`. `Database` owns the schema; `PersistenceService` loads the store on startup and saves it after each store change and on close. Deleting `data/marketplace.db` resets the demo to the seed data. The runtime file is git-ignored.
+
+Tables: `users`, `listings`, `listing_photos`, `offers`, `chat_threads`, `chat_messages`, `deals`, `notifications`, `reviews`, `reports`, `favourites`, `audit_log`. Passwords in `users` are PBKDF2 hashes, never plaintext.
+
 Further grading notes:
 
 - `docs/submission/testing-report.md`
@@ -22,7 +28,7 @@ Further grading notes:
 - `docs/submission/coverage-report.md`
 - `supplementary-notes.txt`
 
-The suite recorded for commit `af1cc09` is 128 tests, 0 failures. JaCoCo on that run: overall 86% instruction and 67% branch (574 of 848); services 69% branch; utils 62% branch.
+The suite is 130 tests, 0 failures. JaCoCo on the latest run: overall 86.5% instruction and 67.7% branch (584 of 862); services 69.6% branch; utils 62.7% branch.
 
 ## Password rules
 
@@ -40,13 +46,13 @@ Usernames are unique across buyers, sellers, and admins. Full name is required. 
 
 Passwords are stored as salted PBKDF2-HMAC-SHA256 hashes: 120,000 iterations and a 16-byte salt. The stored form is `pbkdf2$iterations$salt$hash`. `PasswordUtil.hash` runs on registration and on a password change. `PasswordUtil.verify` runs on login. The raw password is never stored.
 
-Accounts, listings, deals, and chat live in `DummyDataService`. Closing the app clears them.
+Accounts, listings, deals, and chat are cached in `DummyDataService` and persisted in `data/marketplace.db`. Closing and reopening the app keeps them.
 
 ## Shared behaviour
 
 - Role checks use `SessionManager.requireRole` from offer, deal, listing, review, and stats methods. A buyer session cannot perform seller-only or admin-only actions. Each portal login rejects the wrong role and a deactivated account.
 - Opening a listing detail screen calls `incrementViewCount`.
-- Chat is one thread per listing and buyer. Messages stay in memory and `searchMessages` matches case-insensitively. The seller joins the thread the buyer already started. A formal Make Offer reuses `OfferService`.
+- Chat is one thread per listing and buyer. Messages are stored in SQLite and `searchMessages` matches case-insensitively. The seller joins the thread the buyer already started. A formal Make Offer reuses `OfferService`.
 - A giveaway claim is `synchronized` and re-checks that the listing is still live inside the lock. Only the first claim succeeds. The listing becomes `GIVEN`.
 
 ## Buyer
@@ -95,7 +101,7 @@ There is no admin registration. Only the seeded admin can log in.
 
 ## Limits
 
-- Restarting the app clears in-memory data.
+- The database is a local SQLite file, so it is per-machine and not shared between users.
 - JavaFX controllers are not unit tested.
 - The borrow form only picks dates. The “minimum borrow is 5 seconds” line is a demo hint. The service rejects an end date before the start and allows a same-day borrow.
 - A pending offer is not a deal until the seller accepts it. My Deals lists deals, and shows countered offers separately.
