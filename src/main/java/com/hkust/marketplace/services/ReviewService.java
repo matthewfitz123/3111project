@@ -9,8 +9,9 @@ import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.SessionManager;
 
 /**
- * buyer reviews on completed deals (step 22) and seller replies and flags (step 23)
- * each completed deal can be rated once and the seller's rating is recalculated
+ * buyer reviews on completed deals (step 22), seller replies and flags (step 23),
+ * and admin hide/unhide (step 24). each completed deal can be rated once and
+ * the seller's rating is recalculated from reviews that are still visible
  */
 public final class ReviewService {
 
@@ -96,6 +97,25 @@ public final class ReviewService {
         review.setHidden(true);
         DummyDataService.getInstance().recalculateSellerRating(review.getSellerUsername());
         NotificationService.reviewFlagged(review);
+        return review;
+    }
+
+    /**
+     * admin shows or hides a review (step 24). hidden reviews leave the public average.
+     * unhiding also clears a seller flag so the review is public again
+     */
+    public static synchronized Review setHidden(String reviewId, boolean hidden) {
+        SessionManager.requireRole(UserRole.ADMIN);
+        Review review = reviewId == null ? null : DummyDataService.getInstance().findReview(reviewId);
+        if (review == null) {
+            throw new IllegalArgumentException("that review no longer exists");
+        }
+        review.setHidden(hidden);
+        if (!hidden) {
+            review.setFlagged(false);
+            review.setFlagReason(null);
+        }
+        DummyDataService.getInstance().recalculateSellerRating(review.getSellerUsername());
         return review;
     }
 

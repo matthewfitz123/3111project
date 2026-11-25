@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.hkust.marketplace.controllers.admin.RatingsOverviewController"
+      spacing="12" style="-fx-padding: 4;">
+    <Label text="All reviews, including hidden ones" styleClass="section-title"/>
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Seller"/>
+        <ComboBox fx:id="sellerFilter" promptText="All sellers"/>
+        <Label text="Rating"/>
+        <ComboBox fx:id="ratingFilter" promptText="All ratings"/>
+        <Label text="From"/>
+        <DatePicker fx:id="fromDate" promptText="From"/>
+        <Label text="To"/>
+        <DatePicker fx:id="toDate" promptText="To"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="countLabel" text="" style="-fx-text-fill: #5a5a7a;"/>
+    </HBox>
+    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;" VBox.vgrow="ALWAYS">
+        <VBox fx:id="reviewList" spacing="10" style="-fx-padding: 4;"/>
+    </ScrollPane>
+</VBox>
