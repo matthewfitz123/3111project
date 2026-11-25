@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.hkust.marketplace.controllers.admin.ManageUsersController"
+            fitToWidth="true"
+            style="-fx-background-color: transparent;">
+    <VBox fx:id="usersContainer" spacing="14">
+        <padding><Insets top="4" right="4" bottom="4" left="4"/></padding>
+    </VBox>
+</ScrollPane>
