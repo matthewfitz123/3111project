@@ -2,6 +2,9 @@ package com.hkust.marketplace.models;
 
 import java.time.LocalDateTime;
 
+/**
+ * one message in a listing chat thread
+ */
 public class ChatMessage {
     private String id;
     private String threadId;            // which conversation this belongs to

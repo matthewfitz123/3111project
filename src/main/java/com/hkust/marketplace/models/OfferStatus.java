@@ -1,5 +1,8 @@
 package com.hkust.marketplace.models;
 
+/**
+ * lifecycle states for an offer
+ */
 public enum OfferStatus {
     PENDING, // submitted by the buyer but the seller has not responded
     ACCEPTED,// seller accepted

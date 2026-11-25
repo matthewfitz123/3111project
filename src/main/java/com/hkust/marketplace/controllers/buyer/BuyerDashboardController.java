@@ -36,6 +36,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * buyer dashboard with browse my deals profile and notifications
+ */
 public class BuyerDashboardController {
 
     @FXML private StackPane contentPane;

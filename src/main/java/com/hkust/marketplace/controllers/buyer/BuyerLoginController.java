@@ -11,6 +11,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
+/**
+ * buyer login screen with role and active account checks
+ */
 public class BuyerLoginController {
 
     @FXML private TextField usernameField;

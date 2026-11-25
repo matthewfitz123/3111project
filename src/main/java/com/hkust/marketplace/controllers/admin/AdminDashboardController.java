@@ -17,6 +17,9 @@ import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+/**
+ * admin dashboard with listing review users deals ratings and notifications
+ */
 public class AdminDashboardController {
 
     @FXML private StackPane contentPane;

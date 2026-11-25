@@ -2,6 +2,9 @@ package com.hkust.marketplace.models;
 
 import java.time.LocalDateTime;
 
+/**
+ * a buyer rating and comment about a seller
+ */
 public class Review {
     private String id;
     private String dealId;

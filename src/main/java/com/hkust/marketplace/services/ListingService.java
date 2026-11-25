@@ -3,18 +3,15 @@ package com.hkust.marketplace.services;
 import com.hkust.marketplace.models.Listing;
 import com.hkust.marketplace.models.ListingStatus;
 import com.hkust.marketplace.models.ListingType;
-import com.hkust.marketplace.models.Offer;
 import com.hkust.marketplace.models.OfferStatus;
 import com.hkust.marketplace.models.User;
 import com.hkust.marketplace.models.UserRole;
 import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.SessionManager;
 
-import java.time.LocalDateTime;
-
 /**
- * seller edits and deletes on their own listings (step 20)
- * the rules live here so they hold even if a button is not disabled
+ * seller-side listing rules (step 20)
+ * keeps the edit and delete guards in one place so the dashboard stays simple
  */
 public final class ListingService {
 
@@ -23,40 +20,59 @@ public final class ListingService {
     }
 
     /**
-     * only live, pending or rejected listings with no waiting offer can change
+     * true when the listing can still be changed
+     * reserved, sold, lent, given and removed listings are locked
      */
     public static boolean canModify(Listing listing) {
         if (listing == null) {
             return false;
         }
         boolean editableStatus = listing.getStatus() == ListingStatus.LIVE
-                || listing.getStatus() == ListingStatus.PENDING_REVIEW
-                || listing.getStatus() == ListingStatus.REJECTED;
+                || listing.getStatus() == ListingStatus.REJECTED
+                || listing.getStatus() == ListingStatus.PENDING_REVIEW;
         return editableStatus && pendingOfferCount(listing) == 0;
     }
 
+    /**
+     * counts offers that are still waiting on the seller
+     */
     public static long pendingOfferCount(Listing listing) {
+        if (listing == null || listing.getId() == null) {
+            return 0;
+        }
         return DummyDataService.getInstance().getOffersForListing(listing.getId()).stream()
                 .filter(offer -> offer.getStatus() == OfferStatus.PENDING)
                 .count();
     }
 
+    /**
+     * updates the editable fields on a listing owned by the signed in seller
+     * a rejected listing goes back into the review queue
+     */
     public static synchronized void editListing(String listingId, String title, String description,
                                                 String category, String condition, String meetup,
-                                                Double price, Integer lendingDays) {
-        Listing listing = requireModifiableOwnListing(listingId);
-
+                                                Double price, Integer days) {
+        User seller = SessionManager.requireRole(UserRole.SELLER);
+        Listing listing = requireOwnedListing(listingId, seller);
+        if (!canModify(listing)) {
+            throw new IllegalStateException("this listing cannot be edited right now");
+        }
         if (title == null || title.isBlank()) {
             throw new IllegalArgumentException("title cannot be empty");
         }
-        if (category == null || condition == null || meetup == null) {
-            throw new IllegalArgumentException("pick a category, condition and meet-up spot");
+        if (category == null || category.isBlank()) {
+            throw new IllegalArgumentException("pick a category");
         }
-        if (listing.getType() == ListingType.SELL
-                && (price == null || !Double.isFinite(price) || price <= 0)) {
+        if (condition == null || condition.isBlank()) {
+            throw new IllegalArgumentException("pick a condition");
+        }
+        if (meetup == null || meetup.isBlank()) {
+            throw new IllegalArgumentException("pick a meet-up location");
+        }
+        if (listing.getType() == ListingType.SELL && (price == null || price <= 0)) {
             throw new IllegalArgumentException("enter a price above zero");
         }
-        if (listing.getType() == ListingType.LEND && (lendingDays == null || lendingDays <= 0)) {
+        if (listing.getType() == ListingType.LEND && (days == null || days <= 0)) {
             throw new IllegalArgumentException("enter a lending period above zero");
         }
 
@@ -66,9 +82,9 @@ public final class ListingService {
         listing.setCondition(condition);
         listing.setMeetupLocation(meetup);
         listing.setPrice(listing.getType() == ListingType.SELL ? price : null);
-        listing.setLendingDays(listing.getType() == ListingType.LEND ? lendingDays : null);
+        listing.setLendingDays(listing.getType() == ListingType.LEND ? days : null);
 
-        // a rejected listing goes back into the review queue after an edit
+        // a rejected listing gets another chance after the seller fixes it
         if (listing.getStatus() == ListingStatus.REJECTED) {
             listing.setStatus(ListingStatus.PENDING_REVIEW);
             listing.setRejectionReason(null);
@@ -77,35 +93,27 @@ public final class ListingService {
         DummyDataService.getInstance().updateListing(listing);
     }
 
+    /**
+     * deletes a listing owned by the signed in seller after the UI confirms
+     */
     public static synchronized void deleteListing(String listingId) {
-        Listing listing = requireModifiableOwnListing(listingId);
-
-        // a buyer holding a counter for this listing should not be left waiting
-        for (Offer offer : DummyDataService.getInstance().getOffersForListing(listing.getId())) {
-            if (offer.getStatus() == OfferStatus.COUNTERED) {
-                offer.setStatus(OfferStatus.DECLINED);
-                offer.setRespondedAt(LocalDateTime.now());
-                DummyDataService.getInstance().updateOffer(offer);
-                NotificationService.offerDeclined(offer);
-            }
+        User seller = SessionManager.requireRole(UserRole.SELLER);
+        Listing listing = requireOwnedListing(listingId, seller);
+        if (!canModify(listing)) {
+            throw new IllegalStateException("this listing cannot be deleted right now");
         }
-        DummyDataService.getInstance().removeListing(listing.getId());
+        DummyDataService.getInstance().removeListing(listingId);
     }
 
-    private static Listing requireModifiableOwnListing(String listingId) {
-        User seller = SessionManager.requireRole(UserRole.SELLER);
+    // shared guard so sellers cannot touch another seller's listing
+    private static Listing requireOwnedListing(String listingId, User seller) {
         Listing listing = listingId == null ? null : DummyDataService.getInstance().findListing(listingId);
         if (listing == null) {
             throw new IllegalArgumentException("that listing no longer exists");
         }
-        if (!listing.getSellerUsername().equalsIgnoreCase(seller.getUsername())) {
+        if (listing.getSellerUsername() == null
+                || !listing.getSellerUsername().equalsIgnoreCase(seller.getUsername())) {
             throw new SecurityException("that listing is not yours");
-        }
-        if (!canModify(listing)) {
-            throw new IllegalStateException(pendingOfferCount(listing) > 0
-                    ? "answer or decline the pending offers before changing this listing"
-                    : "a " + listing.getStatus().name().toLowerCase().replace('_', ' ')
-                    + " listing cannot be edited or deleted");
         }
         return listing;
     }

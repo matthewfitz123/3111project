@@ -27,6 +27,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+/**
+ * seller dashboard with listings offers stats and notifications
+ */
 public class SellerDashboardController {
 
     @FXML private StackPane contentPane;

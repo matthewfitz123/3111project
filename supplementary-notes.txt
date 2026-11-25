@@ -1,0 +1,127 @@
+HKUST Marketplace - supplementary notes
+======================================
+
+What this file is for
+---------------------
+This is a plain summary of what is actually working, how it was tested, and what is
+still missing. I have kept it separate from documentation.md because documentation.md
+was written early for tasks 1.1 and 1.2 only.
+
+Current status
+--------------
+Steps 1 to 21 are implemented and the project compiles.
+Steps 22 to 28 are being done by other group members:
+  22 seller reviews
+  23 buyer deal history
+  24 admin all deals
+  25 more buyer deals details
+  26 admin manage users
+  27 admin manage listings
+  28 seller stats
+I have not written tests for steps 22 to 28 because that code is not in this checkout yet.
+
+What works now
+--------------
+- Buyer registration and login, with hashed passwords and role checks
+- Seller registration and login, with bio and preferred meet-up
+- Admin login for the seeded admin account
+- Buyer browse screen with keyword search, category/type/condition/price filters and sorting
+- Listing detail screen with photos, seller rating, view counter and report button
+- Buyer offers, borrow requests and giveaway claims
+- Atomic giveaway claim: two buyers cannot both win the same giveaway
+- Seller offer management: accept, decline and counter
+- Buyer can accept a seller counter offer from My Deals
+- Chat panel on the listing detail screen, with retained messages and search
+- Buyer deals: return a borrow early and mark a purchase or claim complete
+- Borrow scheduler: overdue borrows expire and the listing goes live again
+- Seller My Listings: edit/delete only when allowed, with offer-history warnings
+- Shared notification board for buyer, seller and admin, with read/unread and category filter
+- Sidebar unread notification count
+- Password rules: 10 to 64 characters, at least one uppercase, one lowercase and one digit
+
+What is still missing or limited
+--------------------------------
+- Data is in memory only. Restarting the app resets all accounts, listings, deals and chat.
+  This is the same limitation as the original skeleton and was agreed in STEPS.md.
+- The JavaFX controllers are not unit tested. They were checked by loading every screen
+  in a JavaFX smoke run and by clicking through the flows manually.
+- The borrow scheduler checks once per second, but the UI only picks dates, so the
+  smallest visible borrow period is one day. The five-second rule was kept as a hint
+  and the service does enforce that the end date cannot be before the start date.
+- Photos are copied into src/main/resources/images/uploads and the classpath copy.
+  This is fine for a local demo, but a real app would use a proper upload folder.
+- Reviews and seller ratings are not fully finished yet (step 22 onward). The user model
+  already has averageRating and ratingCount, and notifications for reviews exist, but
+  the review screen and reply flow are still to come.
+
+How to run the tests
+--------------------
+From the project folder:
+
+    Windows:
+        .\mvnw.cmd test
+
+    macOS / Linux:
+        ./mvnw test
+
+At the time of writing the fixed build was run with Java 21. On a Mac I also used:
+
+    mvn test -Djavafx.platform=mac
+
+because the pom defaults the JavaFX classifier to win for the Windows teammate.
+
+Test result
+-----------
+68 tests, 0 failures, 0 errors.
+Test classes cover:
+- password hashing and malformed stored hashes
+- the exact password rules
+- session role guards
+- seeded users, listings, view counts, notifications and reports
+- chat threads, message order and search
+- offers, borrow requests and giveaway claims, including two threads claiming at once
+- seller offer accept/decline/counter and buyer counter acceptance
+- deal return, deal completion and wrong-buyer guards
+- borrow scheduler expiry and future-borrow safety
+- notification helpers and seller edit/delete rules
+
+Coverage
+--------
+The JaCoCo report is scoped to the services and utils packages, as Step 29 asks.
+Controllers and models are excluded because they are JavaFX/data-holder classes and
+cannot be properly unit tested headlessly.
+
+Coverage from the latest run:
+    services + utils: 81.3% lines, 68.2% branches
+
+Report file:
+    target/site/jacoco/index.html
+
+Main design decisions
+---------------------
+- Passwords are hashed with salted PBKDF2. The raw password is never stored.
+- Access control is checked in the service layer, not only by hiding buttons.
+  SessionManager.requireRole is called from OfferService, DealService and ListingService.
+- Giveaway claims are synchronized and re-check the listing status inside the lock.
+  This is why two buyers cannot both win.
+- View count is incremented when a listing detail screen is opened.
+- Chat messages are kept in the in-memory store and searched with a case-insensitive match.
+- Notifications are stored with read/unread state so the board and sidebar badge agree.
+- Seller edit/delete is centralised in ListingService so the UI and tests use the same rules.
+
+Assumptions
+-----------
+- There is no backend API. The service/store layer is the API boundary for this project.
+- The admin account is seeded and has no registration screen.
+- Any seller can only edit or delete their own listing.
+- A listing with a pending offer is locked for editing/deleting.
+- Offer history does not block deleting an old listing, but the seller is warned first.
+- Ratings are whole stars from 1 to 5 in the model; the review UI will be added later.
+
+Useful demo accounts
+--------------------
+admin    / Admin12345
+alice    / Password12     buyer
+bob      / Password12     buyer
+charlie  / Password12     seller
+diana    / Password12     seller

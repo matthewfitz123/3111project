@@ -3,6 +3,9 @@ package com.hkust.marketplace.models;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * a buyer offer borrow request or giveaway claim on a listing
+ */
 public class Offer {
 
     private String id;              // assigned by DummyDataService ("O1", "O2", ...)

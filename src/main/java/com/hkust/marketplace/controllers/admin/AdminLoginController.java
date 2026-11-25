@@ -11,6 +11,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
+/**
+ * admin login screen, only the seeded admin account can use it
+ */
 public class AdminLoginController {
 
     @FXML private TextField usernameField;

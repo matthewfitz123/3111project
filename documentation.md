@@ -38,3 +38,13 @@ got ones for admin and seller but not really bothered on these rn
 | Buyer | `bob` | `Password12` |
 | Seller | `charlie` | `Password12` |
 | Seller | `diana` | `Password12` |
+
+## Testing and current status
+
+Unit tests are in `src/test/java`. The latest run has 68 tests, all passing.
+Coverage is reported for `services` and `utils` in `target/site/jacoco/index.html`
+(81.3% lines, 68.2% branches). Steps 1 to 21 are implemented; steps 22 to 28 are
+still being done by other group members.
+
+See `supplementary-notes.txt` for the plain-English test report, limitations,
+assumptions and demo accounts.
