@@ -10,6 +10,6 @@ This folder collects the grading materials required by the brief.
 ## Submission checklist
 
 - [x] `./mvnw test` passes with 0 failures/errors — latest run: 94 tests, 0 failures (see [testing-report.md](testing-report.md)).
-- [ ] JaCoCo branch coverage is above 65% for `services`/`utils`.
+- [x] JaCoCo branch coverage is above 65% — overall 67% (574 of 848). See [coverage-report.md](coverage-report.md).
 - [ ] Screenshots added for buyer/seller/admin flows.
 - [ ] Supplementary notes updated in `supplementary-notes.txt` or a linked doc.
