@@ -221,14 +221,26 @@ public class DummyDataService {
     }
 
     // ========== user methods ==========
+
+    /**
+     * checks whether a username is already used by any role (task 1.1)
+     * matching is case-insensitive because users are keyed by lowercase name
+     */
     public boolean usernameExists(String username) {
         return users.containsKey(username.toLowerCase());
     }
 
+    /**
+     * returns the user for a username regardless of letter case, or null when absent
+     */
     public User findUser(String username) {
         return users.get(username.toLowerCase());
     }
 
+    /**
+     * stores a user under a lowercase username key so lookups stay case-insensitive
+     * callers must check {@link #usernameExists(String)} first to avoid overwriting
+     */
     public void registerUser(User user) {
         users.put(user.getUsername().toLowerCase(), user);
     }
@@ -693,7 +705,12 @@ public class DummyDataService {
         }
     }
 
-    // rules used by buyer and seller registration
+    /**
+     * shared password rules for registration (task 1.1)
+     * requires 10-64 characters with at least one uppercase letter, one lowercase letter and one digit
+     *
+     * @return {@code "OK"} when the password is acceptable, otherwise the user-facing error message
+     */
     public static String checkPasswordStrength(String password) {
         // empty is the easiest one to catch
         if (password == null || password.isEmpty()) return "Password cannot be empty.";

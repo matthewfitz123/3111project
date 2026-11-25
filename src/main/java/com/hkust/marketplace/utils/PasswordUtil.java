@@ -25,7 +25,12 @@ public final class PasswordUtil {
     private PasswordUtil() {
     }
 
-    // hash a password with a fresh random salt
+    /**
+     * hashes a password with a fresh random salt (task 1.1 secure credential storage)
+     *
+     * @return a self-contained {@code pbkdf2$iterations$salt$hash} value safe to store
+     * @throws IllegalArgumentException when the password is null
+     */
     public static String hash(String password) {
         if (password == null) {
             throw new IllegalArgumentException("Password must not be null.");
@@ -38,8 +43,11 @@ public final class PasswordUtil {
                 + Base64.getEncoder().encodeToString(hash);
     }
 
-    // check a typed password against a stored hash
-    // anything gone wrong just fails instead of throwing
+    /**
+     * checks a typed password against a stored {@code pbkdf2$...} value (task 1.1 login verification)
+     *
+     * @return false for null inputs or malformed stored values instead of throwing
+     */
     public static boolean verify(String password, String stored) {
         if (password == null || stored == null) {
             return false;
