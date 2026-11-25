@@ -9,9 +9,9 @@ import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.SessionManager;
 
 /**
- * buyer reviews on completed deals (step 22), seller replies and flags (step 23),
- * and admin hide/unhide (step 24). each completed deal can be rated once and
- * the seller's rating is recalculated from reviews that are still visible
+ * rate a seller after a completed deal (task 1.10)
+ * one written review and a 1–5 rating per completed deal, then the seller average
+ * is recalculated from reviews that are still visible on the profile and listing
  */
 public final class ReviewService {
 

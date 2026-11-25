@@ -14,8 +14,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * background job that ends overdue borrows (step 19)
+ * auto-return for overdue borrows (task 1.6)
  * the check runs every second, but the store is only touched on the fx thread
+ * a passed dueAt moves the deal to EXPIRED and the listing back to LIVE
  */
 public final class BorrowScheduler {
 

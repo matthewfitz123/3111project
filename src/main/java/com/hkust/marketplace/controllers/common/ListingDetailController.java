@@ -211,6 +211,9 @@ public class ListingDetailController {
     }
 
     // newest visible reviews first, hidden ones are filtered out by the store
+    /**
+     * seller reviews shown on the listing (task 1.10), visible to anyone who opens it
+     */
     private void renderSellerReviews(User seller) {
         sellerReviewsBox.getChildren().clear();
         List<Review> reviews = new java.util.ArrayList<>(

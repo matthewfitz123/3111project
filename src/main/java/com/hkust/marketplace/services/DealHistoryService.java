@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * read-only deal history queries and display helpers (step 25)
- * shared by the buyer history screen and the admin all-deals screen
+ * buyer deal history (task 1.9) and the admin all-deals screen
+ * completed and returned deals, with type labels, dates and the shared filter
  */
 public final class DealHistoryService {
 

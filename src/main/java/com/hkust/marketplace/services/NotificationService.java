@@ -11,8 +11,8 @@ import com.hkust.marketplace.models.UserRole;
 import com.hkust.marketplace.utils.DummyDataService;
 
 /**
- * one place for all the notification strings
- * later screens just call a typed method instead of building text by hand
+ * notification text for the buyer board (task 1.8) and the other roles
+ * each helper stores a title, message, category and timestamp
  */
 public final class NotificationService {
 

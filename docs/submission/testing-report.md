@@ -12,7 +12,7 @@ JUnit 5 tests run through Maven Surefire. JaCoCo is attached for coverage.
 
 - Date: 2026-11-25
 - Command: `./mvnw test`
-- Tests run: **100**
+- Tests run: **118**
 - Failures: **0**
 - Errors: **0**
 - Skipped: **0**
@@ -25,6 +25,10 @@ JUnit 5 tests run through Maven Surefire. JaCoCo is attached for coverage.
 | `services.AuthServiceTest` | 8 |
 | `services.BorrowSchedulerTest` | 2 |
 | `services.BrowseServiceTest` | 7 |
+| `services.BuyerDealHistoryTest` | 3 |
+| `services.BuyerMyDealsTest` | 5 |
+| `services.BuyerNotificationBoardTest` | 4 |
+| `services.BuyerReviewTest` | 3 |
 | `services.DealHistoryServiceTest` | 3 |
 | `services.DealServiceTest` | 4 |
 | `services.FavouriteServiceTest` | 3 |
@@ -36,12 +40,13 @@ JUnit 5 tests run through Maven Surefire. JaCoCo is attached for coverage.
 | `services.OfferServiceEdgeTest` | 7 |
 | `services.OfferServiceTest` | 9 |
 | `services.RegistrationServiceTest` | 5 |
+| `utils.BuyerProfileRulesTest` | 3 |
 | `utils.ChatStoreTest` | 5 |
 | `utils.DummyDataServiceTest` | 8 |
 | `utils.PasswordRulesTest` | 5 |
 | `utils.PasswordUtilTest` | 5 |
 | `utils.SessionManagerTest` | 4 |
-| **Total** | **100** |
+| **Total** | **118** |
 
 ## Task 1.1 Buyer Registration
 
@@ -101,4 +106,60 @@ Added `services/ListingOfferChatTest` for the buyer actions on a listing and the
 | `services.OfferServiceTest` | 9 | Shared offer rules, including two threads claiming the same giveaway and only one succeeding. |
 | `utils.ChatStoreTest` | 5 | Thread reuse, message order, and blank-search behavior used by the chat panel. |
 
-Confirmation dialogs on the listing detail screen and in the chat panel are JavaFX alerts. They call `OfferService` and only display the result, so they are checked manually rather than in JUnit. |
+Confirmation dialogs on the listing detail screen and in the chat panel are JavaFX alerts. They call `OfferService` and only display the result, so they are checked manually rather than in JUnit.
+
+## Task 1.6 My Deals
+
+Added `services/BuyerMyDealsTest` for return, completion and auto-return. Older deal and scheduler tests still cover the same methods.
+
+| Test class | Tests | What it covers |
+|---|---:|---|
+| `services.BuyerMyDealsTest` | 5 | Completed deals stay on the buyer list and the listing thread can be reopened, early return records a due time and sets the listing LIVE, auto-return expires a passed `dueAt` and sets the listing LIVE, mark complete leaves the deal unrated and the listing SOLD, a pending offer is not a deal yet. |
+| `services.DealServiceTest` | 4 | Return versus complete, and a different buyer cannot close the deal. |
+| `services.BorrowSchedulerTest` | 2 | Overdue borrow expires; a future due time is left active. |
+
+View listing and Open chat are JavaFX navigation. A pending offer is only a deal after the seller accepts; countered offers are drawn on the screen but are not deals.
+
+## Task 1.7 Manage Profile
+
+Added `utils/BuyerProfileRulesTest` for the checks the profile form runs before it writes the user.
+
+| Test class | Tests | What it covers |
+|---|---:|---|
+| `utils.BuyerProfileRulesTest` | 3 | A strong new password is hashed and verifies, weak passwords fail the shared rules, and the user model itself accepts a blank name. |
+| `utils.PasswordRulesTest` | 5 | Length and character mix used by the profile form. |
+| `utils.PasswordUtilTest` | 5 | Hash and verify used when the password changes. |
+
+Success and failure text are JavaFX alerts in `BuyerDashboardController#showProfile`. The form also edits residence hall, which the task text does not require. Empty full name is rejected only in that form, not in `User`.
+
+## Task 1.8 Notification Board
+
+Added `services/BuyerNotificationBoardTest` for buyer-facing categories, order and read state.
+
+| Test class | Tests | What it covers |
+|---|---:|---|
+| `services.BuyerNotificationBoardTest` | 4 | Offer accepted/declined/countered, new chat, review reply and a plain announcement, each with a category and a timestamp, newest first. Due-soon text can be stored. `listingRemoved` notifies the seller. Mark-read and mark-all-read clear the unread count. |
+| `services.NotificationServiceTest` | 4 | Shared helpers for listing, offer, chat, review and borrow reminders. |
+
+`borrowDueSoon` is not called by `BorrowScheduler`. `NotificationService.listingRemoved` does not notify buyers; the admin remove screen sends those buyer notices itself. The board layout is JavaFX.
+
+## Task 1.9 Deal History
+
+Added `services/BuyerDealHistoryTest`. `DealHistoryServiceTest` already covers labels and the completed/returned filter.
+
+| Test class | Tests | What it covers |
+|---|---:|---|
+| `services.BuyerDealHistoryTest` | 3 | Mark complete makes the deal appear with title, seller, Bought and Completed, date/category/seller filters, and an auto-expired borrow stays out of buyer history. |
+| `services.DealHistoryServiceTest` | 3 | Completed and returned only, Bought/Borrowed/Received labels, date and search matching. |
+
+The table is filled by `DealHistoryController` from `buyerHistory` on each refresh. Expired borrows are not treated as completed history.
+
+## Task 1.10 Review / Rate Sellers
+
+Added `services/BuyerReviewTest`.
+
+| Test class | Tests | What it covers |
+|---|---:|---|
+| `services.BuyerReviewTest` | 3 | One 1–5 review on a completed sale, seller visible-review list and average, the buyer's stored review, a second review rejected, rating 0 rejected, a returned borrow cannot be reviewed. |
+
+Returned borrows are not `COMPLETED`, so `ReviewService` refuses them. There is no separate buyer-review query; the record is the review's buyer username in the store. Listing detail reads `getReviewsForSeller`. The star dialog is JavaFX.
