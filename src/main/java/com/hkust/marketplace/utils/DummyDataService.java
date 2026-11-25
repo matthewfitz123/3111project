@@ -169,6 +169,33 @@ public class DummyDataService {
         reviews.add(r1);
     }
 
+    /**
+     * clears everything and seeds the demo data again
+     * this is only used by unit tests so each test starts from the same state
+     */
+    public void resetForTests() {
+        users.clear();
+        listings.clear();
+        deals.clear();
+        notifications.clear();
+        reviews.clear();
+        offers.clear();
+        chatThreads.clear();
+        chatMessages.clear();
+        reports.clear();
+        auditLog.clear();
+
+        listingIdCounter.set(100);
+        dealIdCounter.set(500);
+        notifIdCounter.set(1);
+        reviewIdCounter.set(1);
+        offerIdCounter.set(1);
+        chatIdCounter.set(1);
+        reportIdCounter.set(1);
+
+        seedData();
+    }
+
     private Listing createListing(String title, String desc, String cat, ListingType type,
                                   String condition, Double price, Integer days,
                                   String meetup, String sellerUser, String sellerName) {
