@@ -12,7 +12,7 @@ JUnit 5 tests run through Maven Surefire. JaCoCo is attached for coverage.
 
 - Date: 2026-11-25
 - Command: `./mvnw test`
-- Tests run: **94**
+- Tests run: **100**
 - Failures: **0**
 - Errors: **0**
 - Skipped: **0**
@@ -29,6 +29,7 @@ JUnit 5 tests run through Maven Surefire. JaCoCo is attached for coverage.
 | `services.DealServiceTest` | 4 |
 | `services.FavouriteServiceTest` | 3 |
 | `services.ListingDealEdgeTest` | 6 |
+| `services.ListingOfferChatTest` | 6 |
 | `services.ListingServiceTest` | 6 |
 | `services.NotificationEdgeTest` | 3 |
 | `services.NotificationServiceTest` | 4 |
@@ -40,7 +41,7 @@ JUnit 5 tests run through Maven Surefire. JaCoCo is attached for coverage.
 | `utils.PasswordRulesTest` | 5 |
 | `utils.PasswordUtilTest` | 5 |
 | `utils.SessionManagerTest` | 4 |
-| **Total** | **94** |
+| **Total** | **100** |
 
 ## Task 1.1 Buyer Registration
 
@@ -89,3 +90,15 @@ Added `services/FavouriteServiceTest` for the like/favourite rules and extended 
 | `utils.DummyDataServiceTest` | 8 | In-memory listing/user store basics used by detail rendering. |
 
 The JavaFX detail screen is thin: `ListingDetailController` renders photos/fields/seller/actions and delegates favourite state to `FavouriteService` and badge/photo rules to `BrowseService`. Screen behavior is verified manually and by screenshots.
+
+## Task 1.5 Offer / borrow / claim + chat
+
+Added `services/ListingOfferChatTest` for the buyer actions on a listing and the private chat thread. Older offer and chat tests still cover the same store and the atomic giveaway claim.
+
+| Test class | Tests | What it covers |
+|---|---:|---|
+| `services.ListingOfferChatTest` | 6 | Pending price offer on a sell listing with a seller notification, same-day borrow request (end date cannot be before the start; the 5-second demo minimum is a hint because the form only picks dates), giveaway claim confirmation and a second claim rejected once the listing is no longer live, rejection when the listing is not live, one retained thread used by buyer and seller with case-insensitive search, formal Make Offer message kept on that thread and searchable. |
+| `services.OfferServiceTest` | 9 | Shared offer rules, including two threads claiming the same giveaway and only one succeeding. |
+| `utils.ChatStoreTest` | 5 | Thread reuse, message order, and blank-search behavior used by the chat panel. |
+
+Confirmation dialogs on the listing detail screen and in the chat panel are JavaFX alerts. They call `OfferService` and only display the result, so they are checked manually rather than in JUnit. |
