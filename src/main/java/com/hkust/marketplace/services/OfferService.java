@@ -17,9 +17,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 /**
- * offer, borrow request and giveaway claim rules (step 15)
- * both public methods are synchronized and re-check the listing status
+ * offer, borrow request and giveaway claim rules for task 1.5
+ * both public action methods are synchronized and re-check the listing status
  * inside the lock so two buyers cannot both win a giveaway
+ * the chat panel reuses {@link #submitOffer} for formal "Make Offer" messages
  */
 public final class OfferService {
 
@@ -28,15 +29,21 @@ public final class OfferService {
     }
 
     /**
-     * creates a price offer for a SELL listing or a borrow request for LEND
+     * creates a price offer for a SELL listing or a borrow request for LEND (task 1.5)
+     * the listing is re-read from the store inside the lock, so stale detail-screen
+     * objects cannot skip the still-available check
      *
      * @param listing the listing the buyer clicked
      * @param buyer   the signed in buyer
      * @param price   price for SELL, ignored for LEND
      * @param start   pickup date for LEND, ignored for SELL
-     * @param end     return date for LEND, ignored for SELL
+     * @param end     return date for LEND, ignored for SELL; same-day is allowed because
+     *                the demo minimum borrow time is 5 seconds
      * @param note    optional message for the seller
      * @return the pending offer
+     * @throws SecurityException         when the caller is not the signed-in buyer
+     * @throws IllegalStateException     when the listing is missing, not LIVE or is a giveaway
+     * @throws IllegalArgumentException  when the SELL price is not positive/finite or the LEND dates are missing/reversed
      */
     public static synchronized Offer submitOffer(Listing listing, User buyer, Double price,
                                                  LocalDate start, LocalDate end, String note) {
@@ -74,8 +81,10 @@ public final class OfferService {
     }
 
     /**
-     * claims a giveaway in one atomic step
-     * the first buyer wins, everyone after that gets a no longer available error
+     * claims a giveaway in one atomic step (task 1.5)
+     * the first buyer wins, everyone after that gets a no longer available error;
+     * success creates an ACCEPTED offer, an ACTIVE deal, marks the listing GIVEN
+     * and sends confirmation notifications to the buyer and seller
      */
     public static synchronized Offer claimGiveaway(Listing listing, User buyer) {
         requireRealBuyer(buyer);
@@ -110,7 +119,7 @@ public final class OfferService {
     }
 
     /**
-     * seller accepts a pending offer (step 16)
+     * seller accepts a pending offer (task 2.6)
      * creates the deal, locks the listing and tells the buyer
      */
     public static synchronized void acceptOffer(String offerId) {

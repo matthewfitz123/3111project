@@ -1,8 +1,7 @@
 package com.hkust.marketplace.controllers.admin;
 
 import com.hkust.marketplace.models.Listing;
-import com.hkust.marketplace.models.ListingStatus;
-import com.hkust.marketplace.services.NotificationService;
+import com.hkust.marketplace.services.ListingService;
 import com.hkust.marketplace.models.UserRole;
 import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.SessionManager;
@@ -14,14 +13,13 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * admin listing review screen (step 9)
- * embedded inside the admin dashboard content pane
+ * admin listing review (task 3.2)
+ * approve, or reject with a reason; the seller is notified either way
  */
 public class ListingReviewController {
 
@@ -119,10 +117,7 @@ public class ListingReviewController {
         Alert conf = new Alert(Alert.AlertType.CONFIRMATION, "Approve this listing?");
         conf.showAndWait().ifPresent(r -> {
             if (r == ButtonType.OK) {
-                l.setStatus(ListingStatus.LIVE);
-                l.setReviewedAt(LocalDateTime.now());
-                DummyDataService.getInstance().updateListing(l);
-                NotificationService.listingApproved(l);
+                ListingService.approveListing(l);
                 render();
             }
         });
@@ -144,11 +139,7 @@ public class ListingReviewController {
         if (reason.isEmpty()) {
             return;
         }
-        l.setStatus(ListingStatus.REJECTED);
-        l.setRejectionReason(reason.get());
-        l.setReviewedAt(LocalDateTime.now());
-        DummyDataService.getInstance().updateListing(l);
-        NotificationService.listingRejected(l, reason.get());
+        ListingService.rejectListing(l, reason.get());
         render();
     }
 

@@ -18,6 +18,7 @@ public class User {
     private LocalDateTime createdAt;
     private double averageRating;   // For sellers
     private int ratingCount;
+    private boolean verified;       // Seller badge shown on browse cards
 
     public User() {
         this.createdAt = LocalDateTime.now();
@@ -64,6 +65,12 @@ public class User {
 
     public int getRatingCount() { return ratingCount; }
     public void setRatingCount(int ratingCount) { this.ratingCount = ratingCount; }
+
+    /**
+     * true when the seller is allowed to show the HKUST Verified badge (task 1.3)
+     */
+    public boolean isVerified() { return verified; }
+    public void setVerified(boolean verified) { this.verified = verified; }
 
     @Override
     public String toString() {

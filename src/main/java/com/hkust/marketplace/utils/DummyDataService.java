@@ -28,6 +28,8 @@ public class DummyDataService {
     private final Map<String, ChatThread> chatThreads = new LinkedHashMap<>();
     private final List<ChatMessage> chatMessages = new ArrayList<>();
     private final List<Report> reports = new ArrayList<>();
+    // buyer favourites are stored per lowercase username for task 1.4
+    private final Map<String, Set<String>> favourites = new LinkedHashMap<>();
     // each line looks like "timestamp | actor | action | detail"
     private final List<String> auditLog = new ArrayList<>();
 
@@ -101,6 +103,7 @@ public class DummyDataService {
         seller1.setPreferredMeetup("Library");
         seller1.setAverageRating(4.7);
         seller1.setRatingCount(12);
+        seller1.setVerified(true);
         users.put("charlie", seller1);
 
         User seller2 = new User("diana", "Diana Ng", PasswordUtil.hash("Password12"), UserRole.SELLER);
@@ -108,6 +111,7 @@ public class DummyDataService {
         seller2.setPreferredMeetup("Hall 5 Lobby");
         seller2.setAverageRating(4.3);
         seller2.setRatingCount(8);
+        seller2.setVerified(true);
         users.put("diana", seller2);
 
         // demo listings
@@ -188,6 +192,7 @@ public class DummyDataService {
         chatThreads.clear();
         chatMessages.clear();
         reports.clear();
+        favourites.clear();
         auditLog.clear();
 
         listingIdCounter.set(100);
@@ -260,6 +265,9 @@ public class DummyDataService {
         return listings.values();
     }
 
+    /**
+     * returns only admin-approved live listings for the buyer browse screen (task 1.3)
+     */
     public List<Listing> getLiveListings() {
         return listings.values().stream()
                 .filter(l -> l.getStatus() == ListingStatus.LIVE)
@@ -295,6 +303,45 @@ public class DummyDataService {
 
     public void removeListing(String id) {
         listings.remove(id);
+    }
+
+    // ========== favourite methods ==========
+
+    /**
+     * toggles one listing in a user's favourites and returns the new state (task 1.4)
+     */
+    public boolean toggleFavourite(String username, String listingId) {
+        if (username == null || username.isBlank() || listingId == null || listingId.isBlank()) {
+            return false;
+        }
+        Set<String> saved = favourites.computeIfAbsent(username.toLowerCase(), key -> new HashSet<>());
+        if (!saved.add(listingId)) {
+            saved.remove(listingId);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * true when the listing is saved in the user's favourites
+     */
+    public boolean isFavourite(String username, String listingId) {
+        if (username == null || listingId == null) {
+            return false;
+        }
+        Set<String> saved = favourites.get(username.toLowerCase());
+        return saved != null && saved.contains(listingId);
+    }
+
+    /**
+     * favourite listing ids for one user, used by the favourites screen later
+     */
+    public Set<String> getFavourites(String username) {
+        if (username == null) {
+            return Collections.emptySet();
+        }
+        return Collections.unmodifiableSet(
+                favourites.getOrDefault(username.toLowerCase(), Collections.emptySet()));
     }
 
     // ========== deal methods ==========

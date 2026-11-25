@@ -1,105 +1,122 @@
 HKUST Marketplace - supplementary notes
 ======================================
 
-Current status
+Who this is for
+---------------
+These notes are for grading the non-H coursework on branch testsANDdocumentation
+(commit af1cc09). Matthew is not in the H group. Every H-Group bullet is out of
+scope and was not implemented as a requirement. That includes buyer favourites
+and following (buyer 1.6), seller AI descriptions (seller 2.4), and the other
+H-Group extras (offer limits, confirmation-with-details, max borrow days,
+return reminders while logged out, profile pictures, re-auth, auto-logout,
+priority/unread/archive/delete notifications, export, charts-as-a-requirement
+beyond the seller stats screen, badges, anonymous reviews, and review sorting).
+
+What is in scope
+----------------
+Non-H buyer tasks 1.1-1.5 and 1.7-1.11, seller tasks 2.1-2.3 and 2.5-2.10,
+and admin tasks 3.1-3.8 are implemented in the service and store layer.
+
+  1.1 Buyer registration (unique username, password rules, hashed storage)
+  1.2 Buyer login (role check, deactivated account)
+  1.3 Browse live listings (search, filter, sort)
+  1.4 Listing detail (photos, seller rating, view count, report)
+  1.5 Offer, borrow request, giveaway claim, and private searchable chat
+  1.7 My Deals (reopen listing and chat, due date, early return, mark complete)
+  1.8 Buyer profile (full name and password)
+  1.9 Notification board (category, timestamp, read state)
+  1.10 Deal history (title, seller, date, type, outcome, filters)
+  1.11 Review a seller after a completed purchase or a returned borrow
+  2.1 Seller registration (bio and preferred meet-up)
+  2.2 Seller login
+  2.3 Create listing (pending review)
+  2.5 List, edit, and delete own listings, with a confirmation dialog
+  2.6 Accept, decline, or counter an offer, and notify the buyer
+  2.7 Seller profile (name, password, bio, meet-up)
+  2.8 Seller notifications (approval, offer, review, completion)
+  2.9 Stats: views, offers, deals, rating, with bar and pie chart data
+  3.1 Admin login for the seeded admin only (no admin registration)
+  3.2 Approve or reject a pending listing, with a reason and a seller notice
+  3.3 View, edit, deactivate, or soft-delete a buyer or seller
+  3.4 Admin name and password
+  3.5 All deals, with the listed fields and search/filter
+  3.6 Admin notifications (submissions, reports, account changes)
+  3.7 Edit any listing, add a listing for a seller, take one down with a reason
+      and notify buyers who had an active offer
+  3.8 Filter ratings and hide inappropriate reviews
+
+JavaFX screens call those services. The controllers themselves are not unit tested.
+
+Where to look
+-------------
+  docs/submission/testing-report.md   JUnit results per task
+  docs/submission/javadoc-guide.md    task-to-method map
+  docs/submission/coverage-report.md  how JaCoCo is produced
+  target/site/jacoco/index.html       JaCoCo HTML (generated, not committed)
+
+How to run
+----------
+  ./mvnw test
+
+Latest result (commit af1cc09)
+------------------------------
+128 tests, 0 failures, 0 errors, 0 skipped.
+
+JaCoCo from the latest index.html:
+  overall   86% instruction, 67% branch (574 of 848)
+  services  69% branch
+  utils     62% branch
+
+Two behaviour fixes in af1cc09
+------------------------------
+- An expired borrow now appears in the buyer's deal history.
+- A returned borrow (status RETURNED) can be reviewed. Previously only
+  COMPLETED purchases could be reviewed.
+
+Password rules
 --------------
-Steps 1 to 21 are implemented and the project compiles.
-Steps 22 to 28 are being done:
-  22 seller reviews
-  23 buyer deal history
-  24 admin all deals
-  25 more buyer deals details
-  26 admin manage users
-  27 admin manage listings
-  28 seller stats
-I have not written tests for steps 22 to 28 because that code is not in this checkout yet.
+10 to 64 characters, at least one uppercase letter, one lowercase letter,
+and one digit. The confirmation password must match. The same rules are used
+for registration and for profile password changes. They are also written in
+documentation.md.
 
-What works now
---------------
-- Buyer registration and login, with hashed passwords and role checks
-- Seller registration and login, with bio and preferred meet-up
-- Admin login for the seeded admin account
-- Buyer browse screen with keyword search, category/type/condition/price filters and sorting
-- Listing detail screen with photos, seller rating, view counter and report button
-- Buyer offers, borrow requests and giveaway claims
-- Atomic giveaway claim: two buyers cannot both win the same giveaway
-- Seller offer management: accept, decline and counter
-- Buyer can accept a seller counter offer from My Deals
-- Chat panel on the listing detail screen, with retained messages and search
-- Buyer deals: return a borrow early and mark a purchase or claim complete
-- Borrow scheduler: overdue borrows expire and the listing goes live again
-- Seller My Listings: edit/delete only when allowed, with offer-history warnings
-- Shared notification board for buyer, seller and admin, with read/unread and category filter
-- Sidebar unread notification count
-- Password rules: 10 to 64 characters, at least one uppercase, one lowercase and one digit
+Passwords are stored as salted PBKDF2-HMAC-SHA256 hashes. The raw password is
+never stored. Login checks the hash with PasswordUtil.verify.
 
-What is still missing or limited
---------------------------------
-- Data is in memory only. Restarting the app resets all accounts, listings, deals and chat.
-  This is the same limitation as the original skeleton and was agreed in STEPS.md.
-- The JavaFX controllers are not unit tested. They were checked by loading every screen
-  in a JavaFX smoke run and by clicking through the flows manually.
-- The borrow scheduler checks once per second, but the UI only picks dates, so the
-  smallest visible borrow period is one day. The five-second rule was kept as a hint
-  and the service does enforce that the end date cannot be before the start date.
-- Photos are copied into src/main/resources/images/uploads and the classpath copy.
-  This is fine for a local demo, but a real app would use a proper upload folder.
-- Reviews and seller ratings are not fully finished yet (step 22 onward). The user model
-  already has averageRating and ratingCount, and notifications for reviews exist, but
-  the review screen and reply flow are still to come.
+Design decisions
+----------------
+- Access control is in the service layer. SessionManager.requireRole is used
+  by offer, deal, listing, review, and stats methods, so a buyer session cannot
+  run seller-only or admin-only actions.
+- Giveaway claims are synchronized and re-check that the listing is still live
+  inside the lock. Two buyers cannot both win the same giveaway.
+- View count increases when a listing detail screen is opened.
+- Chat is one thread per listing and buyer. Messages are kept in memory and
+  searched case-insensitively. The seller joins the thread the buyer started.
+- A soft-deleted user is deactivated and cannot log in. Their listings, deals,
+  and chat stay in the store.
+- Seller edit/delete is allowed only while the listing is live, rejected, or
+  pending, and only when there is no pending offer.
 
+Still true limitations
+----------------------
+- Data is in memory only. Restarting the app clears accounts, listings, deals,
+  and chat. This matches the original skeleton.
+- The JavaFX controllers are not unit tested. They were checked by loading
+  screens and by clicking through the flows.
+- The borrow form only picks dates. The "minimum borrow is 5 seconds" line is
+  a demo hint. The service rejects an end date that is before the start date
+  and allows a same-day borrow.
+- Photos are copied into src/main/resources/images/uploads and the classpath
+  copy. That is enough for a local demo.
+- A pending offer is not a deal until the seller accepts it. My Deals lists
+  deals, and shows countered offers separately so the buyer can accept them.
+- NotificationService.borrowDueSoon can store a reminder, but nothing schedules
+  it. The scheduler only auto-returns a borrow after dueAt.
 
-Test result(up to and including step 21)
------------
-68 tests, 0 failures, 0 errors.
-Test classes cover:
-- password hashing and malformed stored hashes
-- the exact password rules
-- session role guards
-- seeded users, listings, view counts, notifications and reports
-- chat threads, message order and search
-- offers, borrow requests and giveaway claims, including two threads claiming at once
-- seller offer accept/decline/counter and buyer counter acceptance
-- deal return, deal completion and wrong-buyer guards
-- borrow scheduler expiry and future-borrow safety
-- notification helpers and seller edit/delete rules
-
-Coverage
---------
-The JaCoCo report is scoped to the services and utils packages, as Step 29 asks.
-Controllers and models are excluded because they are JavaFX/data-holder classes and
-cannot be properly unit tested headlessly.
-
-Coverage from the latest run:
-    services + utils: 81.3% lines, 68.2% branches
-
-Report file:
-    target/site/jacoco/index.html
-
-Main design decisions
----------------------
-- Passwords are hashed with salted PBKDF2. The raw password is never stored.
-- Access control is checked in the service layer, not only by hiding buttons.
-  SessionManager.requireRole is called from OfferService, DealService and ListingService.
-- Giveaway claims are synchronized and re-check the listing status inside the lock.
-  This is why two buyers cannot both win.
-- View count is incremented when a listing detail screen is opened.
-- Chat messages are kept in the in-memory store and searched with a case-insensitive match.
-- Notifications are stored with read/unread state so the board and sidebar badge agree.
-- Seller edit/delete is centralised in ListingService so the UI and tests use the same rules.
-
-Assumptions
------------
-- There is no backend API. The service/store layer is the API boundary for this project.
-- The admin account is seeded and has no registration screen.
-- Any seller can only edit or delete their own listing.
-- A listing with a pending offer is locked for editing/deleting.
-- Offer history does not block deleting an old listing, but the seller is warned first.
-- Ratings are whole stars from 1 to 5 in the model; the review UI will be added later.
-
-Useful demo accounts
---------------------
-admin    / Admin12345
+Demo accounts
+-------------
+admin    / Admin12345     admin (seeded, no registration screen)
 alice    / Password12     buyer
 bob      / Password12     buyer
 charlie  / Password12     seller

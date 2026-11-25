@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * read-only deal history queries and display helpers (step 25)
- * shared by the buyer history screen and the admin all-deals screen
+ * buyer deal history (task 1.10) and the admin all-deals screen (task 3.5)
+ * completed and returned deals, with type labels, dates and the shared filter
  */
 public final class DealHistoryService {
 
@@ -66,12 +66,13 @@ public final class DealHistoryService {
     }
 
     /**
-     * buyer history only shows deals that finished successfully
+     * buyer history includes deals that finished or expired
      */
     public static boolean isCompletedDeal(Deal deal) {
         return deal != null
                 && (deal.getStatus() == DealStatus.COMPLETED
-                || deal.getStatus() == DealStatus.RETURNED);
+                || deal.getStatus() == DealStatus.RETURNED
+                || deal.getStatus() == DealStatus.EXPIRED);
     }
 
     public static String typeLabel(Deal deal) {

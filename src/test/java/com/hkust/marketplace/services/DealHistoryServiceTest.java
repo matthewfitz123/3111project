@@ -36,13 +36,13 @@ class DealHistoryServiceTest {
         Deal returned = addDeal("alice", "diana", "L103", ListingType.LEND,
                 DealStatus.RETURNED, newer);
         addDeal("alice", "charlie", "L101", ListingType.SELL, DealStatus.ACTIVE, null);
-        addDeal("alice", "diana", "L103", ListingType.LEND, DealStatus.EXPIRED, newer);
+        Deal expired = addDeal("alice", "diana", "L103", ListingType.LEND, DealStatus.EXPIRED, newer);
         addDeal("alice", "charlie", "L102", ListingType.GIVEAWAY,
                 DealStatus.CANCELLED, null);
 
         List<Deal> history = DealHistoryService.buyerHistory("alice");
 
-        assertEquals(List.of(returned.getId(), completed.getId()),
+        assertEquals(List.of(returned.getId(), expired.getId(), completed.getId()),
                 history.stream().map(Deal::getId).toList());
         assertTrue(DealHistoryService.allDeals().stream()
                 .anyMatch(deal -> deal.getStatus() == DealStatus.ACTIVE));

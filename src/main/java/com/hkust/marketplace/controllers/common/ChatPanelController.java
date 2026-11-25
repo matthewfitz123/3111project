@@ -34,9 +34,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
- * private chat panel for one listing (step 14)
- * it creates or finds the thread for this listing and buyer
- * then shows the messages with a search box and a send box
+ * private chat panel for one listing (task 1.5 chat)
+ * buyers and the listing seller share one retained, searchable thread;
+ * the panel also sends formal offers through OfferService
  */
 public class ChatPanelController {
 
@@ -67,8 +67,9 @@ public class ChatPanelController {
     }
 
     /**
-     * points the panel at a listing and finds the right thread
-     * buyers get their own thread, sellers get the thread a buyer already started
+     * points the panel at a listing and finds the right thread (task 1.5)
+     * buyers get or create their own thread for the listing, while the seller
+     * joins the thread a buyer already started; posting is enabled only for those two sides
      */
     public void setListing(Listing listing) {
         this.listing = listing;
@@ -126,7 +127,8 @@ public class ChatPanelController {
     }
 
     /**
-     * sends the text in the box and pings the other person
+     * sends free-text chat (task 1.5): stores the message in the shared thread,
+     * keeps it in history for search, then notifies the other participant
      */
     @FXML
     private void sendMessage() {
@@ -159,8 +161,9 @@ public class ChatPanelController {
     }
 
     /**
-     * formal offer from inside the chat (step 17)
-     * reuses OfferService so offer rules stay in one place
+     * formal "Make Offer" from inside the chat (task 1.5)
+     * SELL asks for a price and LEND asks for borrow dates, then reuses
+     * OfferService so availability and validation rules stay in one place
      */
     @FXML
     private void makeOffer() {
@@ -221,7 +224,10 @@ public class ChatPanelController {
         });
     }
 
-    // creates the offer through the service then posts the linked chat message
+    /**
+     * creates the offer through OfferService, then posts a linked formal ChatMessage
+     * so the offer is visible in the retained chat history and confirmed to the buyer
+     */
     private void submitChatOffer(User buyer, Double price, LocalDate start, LocalDate end) {
         try {
             Offer offer = OfferService.submitOffer(listing, buyer, price, start, end, "Sent via chat");

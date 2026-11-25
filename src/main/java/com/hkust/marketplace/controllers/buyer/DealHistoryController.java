@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * buyer deal history screen (step 25)
- * embedded inside the buyer dashboard content pane
+ * buyer deal history screen (task 1.10)
+ * title, seller, date, type and outcome, filtered by date, category and search
  */
 public class DealHistoryController {
 

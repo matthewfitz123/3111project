@@ -82,9 +82,15 @@ public class Listing {
     public int getViewCount() { return viewCount; }
     public void setViewCount(int viewCount) { this.viewCount = viewCount; }
 
+    /**
+     * classpath-relative photo paths; the first entry is the primary thumbnail (task 1.3)
+     */
     public List<String> getPhotoPaths() { return photoPaths; }
     public void setPhotoPaths(List<String> photoPaths) { this.photoPaths = photoPaths; }
 
+    /**
+     * card/detail price label: HK$ for sell listings, Borrow for lend, Free for giveaway (task 1.3)
+     */
     public String getPriceDisplay() {
         if (type == ListingType.SELL && price != null) {
             return String.format("HK$ %.0f", price);
@@ -95,6 +101,9 @@ public class Listing {
         }
     }
 
+    /**
+     * buyer-facing type label for browse cards and the detail screen (task 1.3)
+     */
     public String getTypeDisplay() {
         return switch (type) {
             case SELL -> "For Sale";

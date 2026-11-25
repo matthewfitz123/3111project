@@ -26,8 +26,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * admin ratings overview (step 24)
- * lists every review, including hidden ones, and lets an admin hide or unhide
+ * admin ratings overview (task 3.8)
+ * filter reviews and hide or show inappropriate ones
  */
 public class RatingsOverviewController {
 

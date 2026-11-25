@@ -10,6 +10,8 @@ import com.hkust.marketplace.models.UserRole;
 import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.SceneManager;
 import com.hkust.marketplace.utils.SessionManager;
+import com.hkust.marketplace.services.BrowseService;
+import com.hkust.marketplace.services.FavouriteService;
 import com.hkust.marketplace.services.NotificationService;
 import com.hkust.marketplace.services.OfferService;
 import javafx.fxml.FXML;
@@ -32,8 +34,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
- * listing detail screen (step 12)
- * shows one listing with all photos, fields and seller info
+ * listing detail screen for task 1.4 with the task 1.5 buyer actions
+ * shows one listing with up to six photos, all fields, seller info,
+ * type actions, chat, favourite and report controls
  * opening it also bumps the view counter
  */
 public class ListingDetailController {
@@ -54,6 +57,7 @@ public class ListingDetailController {
     @FXML private javafx.scene.control.Button actionButton;
     @FXML private javafx.scene.control.Button chatButton;
     @FXML private javafx.scene.control.Button reportButton;
+    @FXML private javafx.scene.control.Button favouriteButton;
 
     @FXML private FlowPane photoGallery;
 
@@ -70,6 +74,7 @@ public class ListingDetailController {
     @FXML private Label sellerAvatar;
     @FXML private Label sellerNameLabel;
     @FXML private Label sellerUsernameLabel;
+    @FXML private Label sellerVerifiedBadge;
     @FXML private Label sellerRatingStars;
     @FXML private Label sellerRatingCountLabel;
     @FXML private VBox sellerReviewsBox;
@@ -145,7 +150,7 @@ public class ListingDetailController {
 
     private void renderPhotos() {
         photoGallery.getChildren().clear();
-        List<String> paths = listing.getPhotoPaths();
+        List<String> paths = BrowseService.photoPaths(listing);
         if (paths == null || paths.isEmpty()) {
             Label none = new Label("No photos uploaded for this listing.");
             none.setStyle("-fx-text-fill: #9aa0b0; -fx-font-size: 12px;");
@@ -184,6 +189,8 @@ public class ListingDetailController {
             sellerRatingStars.setText("");
             sellerRatingCountLabel.setText("");
             sellerBioLabel.setText("");
+            sellerVerifiedBadge.setVisible(false);
+            sellerVerifiedBadge.setManaged(false);
             sellerReviewsBox.getChildren().clear();
             return;
         }
@@ -191,6 +198,10 @@ public class ListingDetailController {
         sellerAvatar.setText(name.isBlank() ? "?" : name.substring(0, 1).toUpperCase());
         sellerNameLabel.setText(name);
         sellerUsernameLabel.setText("@" + seller.getUsername());
+        boolean verified = BrowseService.showVerifiedBadge(listing);
+        sellerVerifiedBadge.setText("HKUST Verified");
+        sellerVerifiedBadge.setVisible(verified);
+        sellerVerifiedBadge.setManaged(verified);
         sellerRatingStars.setText(stars(seller.getAverageRating()));
         sellerRatingCountLabel.setText(String.format("%.1f / 5  ·  %d ratings",
                 seller.getAverageRating(), seller.getRatingCount()));
@@ -200,6 +211,9 @@ public class ListingDetailController {
     }
 
     // newest visible reviews first, hidden ones are filtered out by the store
+    /**
+     * seller reviews shown on the listing (task 1.11), visible to anyone who opens it
+     */
     private void renderSellerReviews(User seller) {
         sellerReviewsBox.getChildren().clear();
         List<Review> reviews = new java.util.ArrayList<>(
@@ -239,6 +253,10 @@ public class ListingDetailController {
         }
     }
 
+    /**
+     * shows the type-specific action label and enables it only for a buyer
+     * while the listing is still live and no action has been sent yet (task 1.5)
+     */
     private void renderActions() {
         boolean buyer = SessionManager.isBuyer();
         boolean live = listing.getStatus() == ListingStatus.LIVE;
@@ -256,6 +274,9 @@ public class ListingDetailController {
         actionButton.setDisable(!buyer || !live || actionSent);
         chatButton.setDisable(chatPanelController == null);
         reportButton.setDisable(!buyer || !live);
+        favouriteButton.setText(FavouriteService.isFavourite(SessionManager.getCurrentUser(), listing)
+                ? "♥ Favourited" : "♥ Favourite");
+        favouriteButton.setDisable(!buyer);
 
         if (!live) {
             actionHintLabel.setText("This listing is no longer live, so offers and claims are disabled.");
@@ -266,6 +287,25 @@ public class ListingDetailController {
         } else {
             actionHintLabel.setText("Pick an action, or say hello in the chat below.");
         }
+    }
+
+    /**
+     * toggles the current listing in the buyer's favourites (task 1.4)
+     */
+    @FXML
+    private void toggleFavourite() {
+        User buyer;
+        try {
+            buyer = SessionManager.requireRole(UserRole.BUYER);
+        } catch (SecurityException ex) {
+            showWarning(ex.getMessage());
+            return;
+        }
+        if (listing == null) {
+            return;
+        }
+        boolean saved = FavouriteService.toggle(buyer, listing);
+        favouriteButton.setText(saved ? "♥ Favourited" : "♥ Favourite");
     }
 
     /**
@@ -307,7 +347,9 @@ public class ListingDetailController {
     }
 
     /**
-     * runs the action button for the current listing type
+     * runs the task 1.5 action for the current listing type
+     * SELL asks for a price, LEND asks for borrow dates and GIVEAWAY asks for one claim;
+     * OfferService re-checks that the listing is still live before anything is stored
      */
     @FXML
     private void handlePrimaryAction() {
@@ -333,7 +375,10 @@ public class ListingDetailController {
         }
     }
 
-    // price offer dialog for sell listings
+    /**
+     * asks for a SELL price and submits it through OfferService (task 1.5)
+     * then shows the confirmation alert and reloads the listing state
+     */
     private void askForOffer(User buyer) {
         TextInputDialog dialog = new TextInputDialog(
                 listing.getPrice() == null ? "" : String.format("%.0f", listing.getPrice()));
@@ -356,7 +401,10 @@ public class ListingDetailController {
         });
     }
 
-    // borrow request dialog with the two dates
+    /**
+     * asks for LEND start/end dates and submits the borrow request (task 1.5)
+     * same-day is allowed because the demo minimum borrow time is 5 seconds
+     */
     private void askForBorrow(User buyer) {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Borrow Request");
@@ -398,7 +446,9 @@ public class ListingDetailController {
         });
     }
 
-    // giveaway claim is one confirmation dialog and one service call
+    /**
+     * asks for one confirmation then claims the giveaway through OfferService (task 1.5)
+     */
     private void askForClaim(User buyer) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Claim Giveaway");
@@ -420,7 +470,9 @@ public class ListingDetailController {
         });
     }
 
-    // reload the listing after an offer or claim and redraw without counting a view
+    /**
+     * reloads the listing after an offer or claim and redraws without counting another view
+     */
     private void reloadAfterAction() {
         listing = DummyDataService.getInstance().findListing(listing.getId());
         if (listing == null) {
@@ -508,6 +560,7 @@ public class ListingDetailController {
         actionButton.setDisable(true);
         chatButton.setDisable(true);
         reportButton.setDisable(true);
+        favouriteButton.setDisable(true);
         photoGallery.getChildren().clear();
         new Alert(Alert.AlertType.WARNING, "This listing could not be found.").showAndWait();
     }

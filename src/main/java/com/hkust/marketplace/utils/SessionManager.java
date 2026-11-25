@@ -10,6 +10,10 @@ import com.hkust.marketplace.models.UserRole;
 public class SessionManager {
     private static User currentUser;
 
+    /**
+     * stores the authenticated user as the current session (task 1.2)
+     * callers must verify credentials before calling this
+     */
     public static void login(User user) {
         currentUser = user;
     }

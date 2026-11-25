@@ -1,18 +1,15 @@
 package com.hkust.marketplace.controllers.admin;
 
-import com.hkust.marketplace.models.User;
-import com.hkust.marketplace.models.UserRole;
-import com.hkust.marketplace.utils.DummyDataService;
-import com.hkust.marketplace.utils.PasswordUtil;
+import com.hkust.marketplace.services.AuthService;
 import com.hkust.marketplace.utils.SceneManager;
-import com.hkust.marketplace.utils.SessionManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
 /**
- * admin login screen, only the seeded admin account can use it
+ * admin login (task 3.1)
+ * only the seeded admin can sign in; there is no registration screen
  */
 public class AdminLoginController {
 
@@ -22,34 +19,14 @@ public class AdminLoginController {
 
     @FXML
     private void handleLogin() {
-        String username = usernameField.getText().trim();
-        String password = passwordField.getText();
         errorLabel.setVisible(false);
         errorLabel.setManaged(false);
-
-        // both fields are needed
-        if (username.isEmpty() || password.isEmpty()) {
-            showError("Please enter credentials.");
-            return;
+        try {
+            AuthService.loginAdmin(usernameField.getText(), passwordField.getText());
+            SceneManager.showAdminDashboard();
+        } catch (IllegalArgumentException ex) {
+            showError(ex.getMessage());
         }
-        // admins are seeded so there is no registration screen
-        User user = DummyDataService.getInstance().findUser(username);
-        if (user == null || user.getRole() != UserRole.ADMIN) {
-            showError("Invalid admin credentials.");
-            return;
-        }
-        // verify the password hash before letting them in
-        if (!PasswordUtil.verify(password, user.getPasswordHash())) {
-            showError("Incorrect password.");
-            return;
-        }
-        // deactivated admins should not get past the login screen
-        if (!user.isActive()) {
-            showError("Account deactivated. Contact admin.");
-            return;
-        }
-        SessionManager.login(user);
-        SceneManager.showAdminDashboard();
     }
 
     private void showError(String msg) {

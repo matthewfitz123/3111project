@@ -23,9 +23,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * shared notification board (step 21)
- * shows every notification for the signed in user with read state
- * and a category filter, plus mark all read
+ * notification board (task 1.9)
+ * newest first, with category, timestamp and read state, plus mark-all-read
  */
 public class NotificationBoardController {
 
