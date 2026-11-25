@@ -12,7 +12,7 @@ JUnit 5 tests run through Maven Surefire. JaCoCo is attached for coverage.
 
 - Date: 2026-11-25
 - Command: `./mvnw test`
-- Tests run: **128**
+- Tests run: **130**
 - Failures: **0**
 - Errors: **0**
 - Skipped: **0**
@@ -22,6 +22,7 @@ JUnit 5 tests run through Maven Surefire. JaCoCo is attached for coverage.
 
 | Test class | Tests |
 |---|---:|
+| `data.PersistenceServiceTest` | 2 |
 | `services.AdminUserTest` | 1 |
 | `services.AuthServiceTest` | 8 |
 | `services.BorrowSchedulerTest` | 2 |
@@ -52,7 +53,7 @@ JUnit 5 tests run through Maven Surefire. JaCoCo is attached for coverage.
 | `utils.PasswordRulesTest` | 5 |
 | `utils.PasswordUtilTest` | 5 |
 | `utils.SessionManagerTest` | 4 |
-| **Total** | **128** |
+| **Total** | **130** |
 
 ## Task 1.1 Buyer Registration
 
@@ -193,6 +194,7 @@ No admin registration. The seeded account is `admin`.
 |---|---:|---|
 | `services.PortalLoginTest` | 3 | Admin login, wrong role rejected, deactivated admin rejected. |
 | `services.ListingModerationTest` | 2 | Approve and reject with a reason, and takedown notifies the seller and a buyer with a pending offer. |
+| `data.PersistenceServiceTest` | 2 |
 | `services.AdminUserTest` | 1 | Soft delete deactivates login and leaves the listing in the store. |
 | `services.DealHistoryServiceTest` | 3 | Shared history filters used by the all-deals table. |
 | `services.SellerReviewHandlingTest` | 1 | Admin unhide puts a flagged review back in the public list. |

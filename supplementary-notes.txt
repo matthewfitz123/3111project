@@ -46,6 +46,7 @@ and admin tasks 3.1-3.8 are implemented in the service and store layer.
   3.8 Filter ratings and hide inappropriate reviews
 
 JavaFX screens call those services. The controllers themselves are not unit tested.
+All of the above is backed by a local SQLite database at data/marketplace.db.
 
 Where to look
 -------------
@@ -58,14 +59,14 @@ How to run
 ----------
   ./mvnw test
 
-Latest result (commit af1cc09)
-------------------------------
-128 tests, 0 failures, 0 errors, 0 skipped.
+Latest result
+-------------
+130 tests, 0 failures, 0 errors, 0 skipped.
 
 JaCoCo from the latest index.html:
-  overall   86% instruction, 67% branch (574 of 848)
-  services  69% branch
-  utils     62% branch
+  overall   86.5% instruction, 67.7% branch (584 of 862)
+  services  69.6% branch
+  utils     62.7% branch
 
 Two behaviour fixes in af1cc09
 ------------------------------
@@ -83,6 +84,15 @@ documentation.md.
 Passwords are stored as salted PBKDF2-HMAC-SHA256 hashes. The raw password is
 never stored. Login checks the hash with PasswordUtil.verify.
 
+Database
+--------
+Local SQLite is used because the TA only requires a database, not a server.
+The schema is in data/Database.java and has tables for users, listings,
+listing photos, offers, chat threads/messages, deals, notifications, reviews,
+reports, favourites and the audit log. PersistenceService loads and saves the
+whole store in one transaction. Tests disable persistence and use the in-memory
+reset hook, so the real data file is never touched by JUnit.
+
 Design decisions
 ----------------
 - Access control is in the service layer. SessionManager.requireRole is used
@@ -91,8 +101,10 @@ Design decisions
 - Giveaway claims are synchronized and re-check that the listing is still live
   inside the lock. Two buyers cannot both win the same giveaway.
 - View count increases when a listing detail screen is opened.
-- Chat is one thread per listing and buyer. Messages are kept in memory and
+- Chat is one thread per listing and buyer. Messages are stored in SQLite and
   searched case-insensitively. The seller joins the thread the buyer started.
+- The store is still the fast in-memory working copy, but SQLite is the storage
+  layer. It is loaded on startup and saved after each store change and on close.
 - A soft-deleted user is deactivated and cannot log in. Their listings, deals,
   and chat stay in the store.
 - Seller edit/delete is allowed only while the listing is live, rejected, or
@@ -100,8 +112,8 @@ Design decisions
 
 Still true limitations
 ----------------------
-- Data is in memory only. Restarting the app clears accounts, listings, deals,
-  and chat. This matches the original skeleton.
+- SQLite is local to the machine. The file is data/marketplace.db; delete it if
+  you want to reset the demo to the seeded data. It is git-ignored.
 - The JavaFX controllers are not unit tested. They were checked by loading
   screens and by clicking through the flows.
 - The borrow form only picks dates. The "minimum borrow is 5 seconds" line is

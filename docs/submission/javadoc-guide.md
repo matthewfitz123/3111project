@@ -10,6 +10,10 @@ To generate HTML docs locally:
 
 Output is written under `target/site/apidocs` (not committed).
 
+## Database and persistence
+
+`data/Database` explains the SQLite connection and schema. `data/PersistenceService` explains loading the store on startup and saving it in one transaction. `utils/DummyDataService#snapshot` and `#restore` are the bridge between the live store and the database.
+
 ## Task map
 
 | Task | Main classes / methods | What the comments explain |
