@@ -101,6 +101,8 @@ public class ManageListingsController {
 
         Button edit = new Button("Edit");
         edit.getStyleClass().addAll("btn-outline", "btn-sm");
+        // REMOVED is terminal: it can only be reached through the remove flow
+        edit.setDisable(l.getStatus() == ListingStatus.REMOVED);
         edit.setOnAction(e -> showListingForm(l));
 
         Button remove = new Button("Remove");
@@ -129,7 +131,19 @@ public class ManageListingsController {
                 : "Edit: " + existing.getTitle());
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
-        List<User> sellers = data.getUsersByRole(UserRole.SELLER);
+        List<User> sellers = new ArrayList<>(data.getUsersByRole(UserRole.SELLER));
+        if (!isAdd) {
+            // the current seller may no longer have the SELLER role (e.g. demoted
+            // in Manage Users) - keep them selectable so the listing stays editable
+            boolean found = sellers.stream().anyMatch(
+                    u -> u.getUsername().equalsIgnoreCase(existing.getSellerUsername()));
+            if (!found) {
+                User current = data.findUser(existing.getSellerUsername());
+                if (current != null) {
+                    sellers.add(current);
+                }
+            }
+        }
         ComboBox<User> sellerBox = new ComboBox<>(FXCollections.observableArrayList(sellers));
         sellerBox.setCellFactory(v -> userListCell());
         sellerBox.setButtonCell(userListCell());
@@ -169,8 +183,14 @@ public class ManageListingsController {
                 FXCollections.observableArrayList(DummyDataService.HKUST_LOCATIONS));
         meetupBox.setValue(isAdd ? DummyDataService.HKUST_LOCATIONS.get(0) : existing.getMeetupLocation());
 
+        // REMOVED is excluded so removal always goes through removeListing()
+        // (reason prompt + buyer/seller notifications); REMOVED rows can't be
+        // edited anyway, so no editable listing ever needs it as a value
+        List<ListingStatus> editableStatuses = new ArrayList<>(
+                java.util.Arrays.asList(ListingStatus.values()));
+        editableStatuses.remove(ListingStatus.REMOVED);
         ComboBox<ListingStatus> statusBox = new ComboBox<>(
-                FXCollections.observableArrayList(ListingStatus.values()));
+                FXCollections.observableArrayList(editableStatuses));
         statusBox.setValue(isAdd ? ListingStatus.PENDING_REVIEW : existing.getStatus());
 
         // price only applies to sell, lending days only to lend

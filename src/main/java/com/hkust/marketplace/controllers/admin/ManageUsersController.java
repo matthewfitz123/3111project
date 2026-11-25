@@ -28,6 +28,12 @@ public class ManageUsersController {
 
     private void render() {
         usersContainer.getChildren().clear();
+
+        Button auditBtn = new Button("View Audit Log");
+        auditBtn.getStyleClass().addAll("btn-outline", "btn-sm");
+        auditBtn.setOnAction(e -> showAuditLog());
+        usersContainer.getChildren().add(auditBtn);
+
         DummyDataService data = DummyDataService.getInstance();
         int shown = 0;
         for (User u : data.getAllUsers()) {
@@ -149,8 +155,10 @@ public class ManageUsersController {
 
         TextField nameField = new TextField(u.getFullName());
         nameField.setPromptText("Full name");
-        ComboBox<UserRole> roleBox = new ComboBox<>(FXCollections.observableArrayList(UserRole.values()));
-        roleBox.setValue(u.getRole());
+        // admins are never manageable here, so don't allow promoting anyone to ADMIN
+        ComboBox<UserRole> roleBox = new ComboBox<>(FXCollections.observableArrayList(
+                UserRole.BUYER, UserRole.SELLER));
+        roleBox.setValue(u.getRole() == UserRole.SELLER ? UserRole.SELLER : UserRole.BUYER);
 
         GridPane grid = new GridPane();
         grid.setHgap(10);
@@ -177,5 +185,23 @@ public class ManageUsersController {
         data.logAudit(actor(), "USER_EDITED",
                 "@" + u.getUsername() + " name='" + newName + "' role=" + u.getRole());
         render();
+    }
+
+    private void showAuditLog() {
+        if (!requireAdmin()) {
+            return;
+        }
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Audit Log");
+        dialog.setHeaderText("Admin actions, oldest first");
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+
+        TextArea area = new TextArea(String.join("\n",
+                DummyDataService.getInstance().getAuditLog()));
+        area.setEditable(false);
+        area.setWrapText(false);
+        area.setPrefSize(700, 400);
+        dialog.getDialogPane().setContent(area);
+        dialog.showAndWait();
     }
 }
