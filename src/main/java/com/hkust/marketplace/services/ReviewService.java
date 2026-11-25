@@ -9,7 +9,7 @@ import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.SessionManager;
 
 /**
- * buyer reviews on completed deals (step 22)
+ * buyer reviews on completed deals (step 22) and seller replies and flags (step 23)
  * each completed deal can be rated once and the seller's rating is recalculated
  */
 public final class ReviewService {
@@ -59,6 +59,55 @@ public final class ReviewService {
         fresh.setRated(true);
         DummyDataService.getInstance().recalculateSellerRating(fresh.getSellerUsername());
         NotificationService.reviewReceived(review);
+        return review;
+    }
+
+    /**
+     * seller answers a review on their own profile (step 23), sending again edits the reply
+     */
+    public static synchronized Review replyToReview(String reviewId, String reply) {
+        Review review = requireOwnReview(reviewId);
+        String text = reply == null ? "" : reply.trim();
+        if (text.isEmpty()) {
+            throw new IllegalArgumentException("write a reply first");
+        }
+        if (text.length() > MAX_COMMENT_LENGTH) {
+            throw new IllegalArgumentException("keep the reply under " + MAX_COMMENT_LENGTH + " characters");
+        }
+        review.setSellerReply(text);
+        NotificationService.reviewReplied(review);
+        return review;
+    }
+
+    /**
+     * seller reports a review, it is hidden until an admin checks it (step 23)
+     */
+    public static synchronized Review flagReview(String reviewId, String reason) {
+        Review review = requireOwnReview(reviewId);
+        if (review.isFlagged() || review.isHidden()) {
+            throw new IllegalStateException("this review is already hidden for admin review");
+        }
+        String text = reason == null ? "" : reason.trim();
+        if (text.length() > MAX_COMMENT_LENGTH) {
+            throw new IllegalArgumentException("keep the reason under " + MAX_COMMENT_LENGTH + " characters");
+        }
+        review.setFlagged(true);
+        review.setFlagReason(text);
+        review.setHidden(true);
+        DummyDataService.getInstance().recalculateSellerRating(review.getSellerUsername());
+        NotificationService.reviewFlagged(review);
+        return review;
+    }
+
+    private static Review requireOwnReview(String reviewId) {
+        User seller = SessionManager.requireRole(UserRole.SELLER);
+        Review review = reviewId == null ? null : DummyDataService.getInstance().findReview(reviewId);
+        if (review == null) {
+            throw new IllegalArgumentException("that review no longer exists");
+        }
+        if (!review.getSellerUsername().equalsIgnoreCase(seller.getUsername())) {
+            throw new SecurityException("that review is not about you");
+        }
         return review;
     }
 }

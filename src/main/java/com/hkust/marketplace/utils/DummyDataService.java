@@ -339,6 +339,19 @@ public class DummyDataService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * every review for a seller including hidden ones, for the seller's own screen
+     */
+    public List<Review> getAllReviewsForSeller(String username) {
+        return reviews.stream()
+                .filter(r -> r.getSellerUsername().equalsIgnoreCase(username))
+                .collect(Collectors.toList());
+    }
+
+    public Review findReview(String id) {
+        return reviews.stream().filter(r -> r.getId().equals(id)).findFirst().orElse(null);
+    }
+
     public List<Review> getAllReviews() {
         return new ArrayList<>(reviews);
     }

@@ -12,6 +12,8 @@ public class Review {
     private String comment;
     private String sellerReply;
     private boolean hidden; // admin can hide
+    private boolean flagged; // seller asked an admin to look at it
+    private String flagReason;
     private LocalDateTime createdAt;
 
     public Review() {
@@ -22,6 +24,12 @@ public class Review {
     // Getters & Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
+
+    public boolean isFlagged() { return flagged; }
+    public void setFlagged(boolean flagged) { this.flagged = flagged; }
+
+    public String getFlagReason() { return flagReason; }
+    public void setFlagReason(String flagReason) { this.flagReason = flagReason; }
 
     public String getDealId() { return dealId; }
     public void setDealId(String dealId) { this.dealId = dealId; }
