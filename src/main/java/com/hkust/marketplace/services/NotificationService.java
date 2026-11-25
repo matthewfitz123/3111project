@@ -233,6 +233,10 @@ public final class NotificationService {
 
     // grabs a full name when we have one, otherwise the username
     private static String displayName(String username) {
+        // system or deleted users may not have a name left
+        if (username == null) {
+            return "someone";
+        }
         User user = DummyDataService.getInstance().findUser(username);
         return user == null || user.getFullName() == null || user.getFullName().isBlank()
                 ? username : user.getFullName();
