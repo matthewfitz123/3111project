@@ -1,5 +1,6 @@
 package com.hkust.marketplace.utils;
 
+import com.hkust.marketplace.data.PersistenceService;
 import com.hkust.marketplace.models.*;
 
 import java.time.LocalDate;
@@ -40,6 +41,7 @@ public class DummyDataService {
     private final AtomicInteger offerIdCounter = new AtomicInteger(1);
     private final AtomicInteger chatIdCounter = new AtomicInteger(1);
     private final AtomicInteger reportIdCounter = new AtomicInteger(1);
+    private boolean suppressPersistence;
 
     // predefined hkust locations
     public static final List<String> HKUST_LOCATIONS = List.of(
@@ -74,7 +76,33 @@ public class DummyDataService {
     );
 
     private DummyDataService() {
-        seedData();
+        boolean loaded = false;
+        if (PersistenceService.isEnabled()) {
+            try {
+                loaded = PersistenceService.load(this);
+            } catch (RuntimeException ex) {
+                System.err.println("[store] database load failed: " + ex.getMessage());
+            }
+        }
+        if (!loaded) {
+            // seed without writing a half built store to disk
+            suppressPersistence = true;
+            seedData();
+            suppressPersistence = false;
+            persist();
+        }
+    }
+
+    // writes the whole store to sqlite, quietly so a db hiccup never kills the ui
+    private void persist() {
+        if (suppressPersistence || !PersistenceService.isEnabled()) {
+            return;
+        }
+        try {
+            PersistenceService.save(this);
+        } catch (RuntimeException ex) {
+            System.err.println("[store] database save failed: " + ex.getMessage());
+        }
     }
 
     public static DummyDataService getInstance() {
@@ -179,10 +207,103 @@ public class DummyDataService {
     }
 
     /**
+     * a plain copy of every collection so the database layer can save it
+     */
+    public static final class Snapshot {
+        public final Map<String, User> users = new LinkedHashMap<>();
+        public final Map<String, Listing> listings = new LinkedHashMap<>();
+        public final List<Deal> deals = new ArrayList<>();
+        public final List<Notification> notifications = new ArrayList<>();
+        public final List<Review> reviews = new ArrayList<>();
+        public final List<Offer> offers = new ArrayList<>();
+        public final Map<String, ChatThread> chatThreads = new LinkedHashMap<>();
+        public final List<ChatMessage> chatMessages = new ArrayList<>();
+        public final List<Report> reports = new ArrayList<>();
+        public final Map<String, Set<String>> favourites = new LinkedHashMap<>();
+        public final List<String> auditLog = new ArrayList<>();
+    }
+
+    /**
+     * copies the live store into a snapshot for persistence
+     */
+    public Snapshot snapshot() {
+        Snapshot s = new Snapshot();
+        s.users.putAll(users);
+        s.listings.putAll(listings);
+        s.deals.addAll(deals);
+        s.notifications.addAll(notifications);
+        s.reviews.addAll(reviews);
+        s.offers.addAll(offers);
+        s.chatThreads.putAll(chatThreads);
+        s.chatMessages.addAll(chatMessages);
+        s.reports.addAll(reports);
+        favourites.forEach((username, ids) -> s.favourites.put(username, new HashSet<>(ids)));
+        s.auditLog.addAll(auditLog);
+        return s;
+    }
+
+    /**
+     * replaces the live store with a snapshot loaded from sqlite
+     */
+    public void restore(Snapshot s) {
+        suppressPersistence = true;
+        users.clear();
+        users.putAll(s.users);
+        listings.clear();
+        listings.putAll(s.listings);
+        deals.clear();
+        deals.addAll(s.deals);
+        notifications.clear();
+        notifications.addAll(s.notifications);
+        reviews.clear();
+        reviews.addAll(s.reviews);
+        offers.clear();
+        offers.addAll(s.offers);
+        chatThreads.clear();
+        chatThreads.putAll(s.chatThreads);
+        chatMessages.clear();
+        chatMessages.addAll(s.chatMessages);
+        reports.clear();
+        reports.addAll(s.reports);
+        favourites.clear();
+        s.favourites.forEach((username, ids) -> favourites.put(username, new HashSet<>(ids)));
+        auditLog.clear();
+        auditLog.addAll(s.auditLog);
+
+        listingIdCounter.set(nextNumber(s.listings.keySet(), "L", 100));
+        dealIdCounter.set(nextNumber(s.deals.stream().map(Deal::getId).toList(), "D", 500));
+        notifIdCounter.set(nextNumber(s.notifications.stream().map(Notification::getId).toList(), "N", 1));
+        reviewIdCounter.set(nextNumber(s.reviews.stream().map(Review::getId).toList(), "R", 1));
+        offerIdCounter.set(nextNumber(s.offers.stream().map(Offer::getId).toList(), "O", 1));
+        int nextChat = Math.max(
+                nextNumber(s.chatThreads.keySet(), "T", 1),
+                nextNumber(s.chatMessages.stream().map(ChatMessage::getId).toList(), "M", 1));
+        chatIdCounter.set(nextChat);
+        reportIdCounter.set(nextNumber(s.reports.stream().map(Report::getId).toList(), "RP", 1));
+        suppressPersistence = false;
+    }
+
+    // finds the next free numeric id for a prefix
+    private static int nextNumber(java.util.Collection<String> ids, String prefix, int base) {
+        int max = base - 1;
+        for (String id : ids) {
+            if (id != null && id.startsWith(prefix)) {
+                try {
+                    max = Math.max(max, Integer.parseInt(id.substring(prefix.length())));
+                } catch (NumberFormatException ignored) {
+                    // ids from older data may not be numeric, skip them
+                }
+            }
+        }
+        return max + 1;
+    }
+
+    /**
      * clears everything and seeds the demo data again
      * this is only used by unit tests so each test starts from the same state
      */
     public void resetForTests() {
+        suppressPersistence = true;
         users.clear();
         listings.clear();
         deals.clear();
@@ -204,6 +325,7 @@ public class DummyDataService {
         reportIdCounter.set(1);
 
         seedData();
+        suppressPersistence = false;
     }
 
     private Listing createListing(String title, String desc, String cat, ListingType type,
@@ -248,6 +370,7 @@ public class DummyDataService {
      */
     public void registerUser(User user) {
         users.put(user.getUsername().toLowerCase(), user);
+        persist();
     }
 
     public Collection<User> getAllUsers() {
@@ -295,14 +418,17 @@ public class DummyDataService {
             listing.setId("L" + listingIdCounter.getAndIncrement());
         }
         listings.put(listing.getId(), listing);
+        persist();
     }
 
     public void updateListing(Listing listing) {
         listings.put(listing.getId(), listing);
+        persist();
     }
 
     public void removeListing(String id) {
         listings.remove(id);
+        persist();
     }
 
     // ========== favourite methods ==========
@@ -317,8 +443,10 @@ public class DummyDataService {
         Set<String> saved = favourites.computeIfAbsent(username.toLowerCase(), key -> new HashSet<>());
         if (!saved.add(listingId)) {
             saved.remove(listingId);
+            persist();
             return false;
         }
+        persist();
         return true;
     }
 
@@ -376,6 +504,7 @@ public class DummyDataService {
             deal.setId("D" + dealIdCounter.getAndIncrement());
         }
         deals.add(deal);
+        persist();
     }
 
     // ========== notification methods ==========
@@ -391,6 +520,7 @@ public class DummyDataService {
             n.setId("N" + notifIdCounter.getAndIncrement());
         }
         notifications.add(n);
+        persist();
     }
 
     /**
@@ -400,6 +530,7 @@ public class DummyDataService {
         for (Notification notification : notifications) {
             if (id != null && id.equals(notification.getId())) {
                 notification.setRead(true);
+                persist();
                 return;
             }
         }
@@ -414,6 +545,7 @@ public class DummyDataService {
                 notification.setRead(true);
             }
         }
+        persist();
     }
 
     /**
@@ -454,6 +586,7 @@ public class DummyDataService {
             r.setId("R" + reviewIdCounter.getAndIncrement());
         }
         reviews.add(r);
+        persist();
     }
 
     /**
@@ -468,6 +601,7 @@ public class DummyDataService {
         double average = visible.stream().mapToInt(Review::getRating).average().orElse(0.0);
         seller.setAverageRating(Math.round(average * 10) / 10.0);
         seller.setRatingCount(visible.size());
+        persist();
     }
 
     // ========== offer methods ==========
@@ -484,6 +618,7 @@ public class DummyDataService {
             offer.setId("O" + offerIdCounter.getAndIncrement());
         }
         offers.add(offer);
+        persist();
     }
 
     /**
@@ -559,6 +694,7 @@ public class DummyDataService {
         for (int i = 0; i < offers.size(); i++) {
             if (offers.get(i).getId().equals(offer.getId())) {
                 offers.set(i, offer);
+                persist();
                 return;
             }
         }
@@ -591,6 +727,7 @@ public class DummyDataService {
         thread.setBuyerUsername(buyerUsername);
         thread.setSellerUsername(listing.getSellerUsername());
         chatThreads.put(thread.getId(), thread);
+        persist();
         return thread;
     }
 
@@ -605,6 +742,7 @@ public class DummyDataService {
             message.setId("M" + chatIdCounter.getAndIncrement());
         }
         chatMessages.add(message);
+        persist();
     }
 
     /**
@@ -658,6 +796,7 @@ public class DummyDataService {
             report.setId("RP" + reportIdCounter.getAndIncrement());
         }
         reports.add(report);
+        persist();
     }
 
     /**
@@ -674,6 +813,7 @@ public class DummyDataService {
         for (Report report : reports) {
             if (report.getId().equals(id)) {
                 report.setResolved(true);
+                persist();
                 return;
             }
         }
@@ -688,6 +828,7 @@ public class DummyDataService {
         for (Deal deal : deals) {
             if (deal.getId().equals(dealId)) {
                 deal.setStatus(status);
+                persist();
                 return;
             }
         }
@@ -713,6 +854,7 @@ public class DummyDataService {
         User user = findUser(username);
         if (user != null) {
             user.setActive(false);
+            persist();
         }
     }
 
@@ -723,6 +865,7 @@ public class DummyDataService {
         User user = findUser(username);
         if (user != null) {
             user.setActive(true);
+            persist();
         }
     }
 
@@ -738,6 +881,7 @@ public class DummyDataService {
      */
     public void logAudit(String actor, String action, String detail) {
         auditLog.add(LocalDateTime.now() + " | " + actor + " | " + action + " | " + detail);
+        persist();
     }
 
     // ========== listing view helper ==========
@@ -749,6 +893,7 @@ public class DummyDataService {
         Listing listing = findListing(listingId);
         if (listing != null) {
             listing.setViewCount(listing.getViewCount() + 1);
+            persist();
         }
     }
 
