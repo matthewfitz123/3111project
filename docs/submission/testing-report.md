@@ -12,7 +12,7 @@ JUnit 5 tests run through Maven Surefire. JaCoCo is attached for coverage.
 
 - Date: 2026-11-25
 - Command: `./mvnw test`
-- Tests run: **84**
+- Tests run: **90**
 - Failures: **0**
 - Errors: **0**
 - Skipped: **0**
@@ -24,6 +24,7 @@ JUnit 5 tests run through Maven Surefire. JaCoCo is attached for coverage.
 |---|---:|
 | `services.AuthServiceTest` | 8 |
 | `services.BorrowSchedulerTest` | 2 |
+| `services.BrowseServiceTest` | 6 |
 | `services.DealHistoryServiceTest` | 3 |
 | `services.DealServiceTest` | 4 |
 | `services.ListingDealEdgeTest` | 6 |
@@ -38,7 +39,7 @@ JUnit 5 tests run through Maven Surefire. JaCoCo is attached for coverage.
 | `utils.PasswordRulesTest` | 5 |
 | `utils.PasswordUtilTest` | 5 |
 | `utils.SessionManagerTest` | 4 |
-| **Total** | **84** |
+| **Total** | **90** |
 
 ## Task 1.1 Buyer Registration
 
@@ -64,3 +65,14 @@ Added `services/AuthServiceTest` for the buyer login rules, and reused the sessi
 | `utils.SessionManagerTest` | 4 | Session login/logout and role guard helpers used after authentication. |
 
 The JavaFX login screen is thin: `BuyerLoginController#handleLogin` delegates to `AuthService#loginBuyer` and only displays errors or navigates to the buyer dashboard. Screen behavior is verified manually and by screenshots.
+
+## Task 1.3 Browse Marketplace
+
+Added `services/BrowseServiceTest` for the browse-card data rules, and reused the store test for seeded live listings.
+
+| Test class | Tests | What it covers |
+|---|---:|---|
+| `services.BrowseServiceTest` | 6 | Live-only listing selection, primary photo path choice, seller rating label, HKUST Verified badge rule, availability label, and sell/lend/giveaway display labels. |
+| `utils.DummyDataServiceTest` | 8 | In-memory listing/user store basics and seeded data used by the browse screen. |
+
+The JavaFX card is thin: `BuyerDashboardController#createListingCard` renders thumbnail, badges, seller rating and actions, while `BrowseService` owns the testable card data rules. Screen behavior is verified manually and by screenshots.

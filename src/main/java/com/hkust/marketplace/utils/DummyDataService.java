@@ -101,6 +101,7 @@ public class DummyDataService {
         seller1.setPreferredMeetup("Library");
         seller1.setAverageRating(4.7);
         seller1.setRatingCount(12);
+        seller1.setVerified(true);
         users.put("charlie", seller1);
 
         User seller2 = new User("diana", "Diana Ng", PasswordUtil.hash("Password12"), UserRole.SELLER);
@@ -108,6 +109,7 @@ public class DummyDataService {
         seller2.setPreferredMeetup("Hall 5 Lobby");
         seller2.setAverageRating(4.3);
         seller2.setRatingCount(8);
+        seller2.setVerified(true);
         users.put("diana", seller2);
 
         // demo listings
@@ -260,6 +262,9 @@ public class DummyDataService {
         return listings.values();
     }
 
+    /**
+     * returns only admin-approved live listings for the buyer browse screen (task 1.3)
+     */
     public List<Listing> getLiveListings() {
         return listings.values().stream()
                 .filter(l -> l.getStatus() == ListingStatus.LIVE)

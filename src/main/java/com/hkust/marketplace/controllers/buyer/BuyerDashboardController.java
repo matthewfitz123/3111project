@@ -10,6 +10,7 @@ import com.hkust.marketplace.models.OfferStatus;
 import com.hkust.marketplace.models.User;
 import com.hkust.marketplace.models.UserRole;
 import com.hkust.marketplace.controllers.common.ListingDetailController;
+import com.hkust.marketplace.services.BrowseService;
 import com.hkust.marketplace.services.DealService;
 import com.hkust.marketplace.services.OfferService;
 import com.hkust.marketplace.services.ReviewService;
@@ -23,6 +24,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -87,6 +90,10 @@ public class BuyerDashboardController {
         pageTitle.setText(title);
     }
 
+    /**
+     * renders the buyer browse marketplace screen (task 1.3)
+     * shows only live listings and keeps filter state between re-renders
+     */
     @FXML
     private void showBrowse() {
         setActive(btnBrowse, "Browse Marketplace");
@@ -196,7 +203,9 @@ public class BuyerDashboardController {
         contentPane.getChildren().add(scroll);
     }
 
-    // filters and sorts live listings using the browse* fields
+    /**
+     * filters and sorts live listings using the browse* fields (task 1.3)
+     */
     private List<Listing> applyBrowseFilters() {
         String keyword = browseSearch == null ? "" : browseSearch.trim().toLowerCase();
         Double min = parsePrice(browseMinPrice);
@@ -250,14 +259,33 @@ public class BuyerDashboardController {
         };
     }
 
+    /**
+     * builds one browse card with thumbnail, badges, seller rating and actions (task 1.3)
+     */
     private VBox createListingCard(Listing listing) {
         VBox card = new VBox(8);
         card.getStyleClass().add("listing-card");
         card.setPrefWidth(260);
         card.setMinHeight(200);
 
+        // primary photo thumbnail, or a small placeholder when the listing has none
+        String photoPath = BrowseService.primaryPhotoPath(listing);
+        Image thumb = photoPath == null ? null : loadThumbnail(photoPath);
+        if (thumb != null) {
+            ImageView thumbView = new ImageView(thumb);
+            thumbView.setFitWidth(240);
+            thumbView.setFitHeight(110);
+            thumbView.setPreserveRatio(true);
+            thumbView.setSmooth(true);
+            card.getChildren().add(thumbView);
+        } else {
+            Label noPhoto = new Label("No photo");
+            noPhoto.setStyle("-fx-text-fill: #9aa0b0; -fx-font-size: 12px;");
+            card.getChildren().add(noPhoto);
+        }
+
         // Type badge + price
-        HBox top = new HBox();
+        HBox top = new HBox(6);
         top.setAlignment(Pos.CENTER_LEFT);
         Label typeBadge = new Label(listing.getTypeDisplay());
         typeBadge.getStyleClass().add("badge");
@@ -265,11 +293,15 @@ public class BuyerDashboardController {
         else if (listing.getType() == ListingType.LEND) typeBadge.getStyleClass().add("badge-pending");
         else typeBadge.getStyleClass().add("badge-live");
 
+        Label availability = new Label(BrowseService.availabilityLabel(listing));
+        availability.getStyleClass().add("badge");
+        availability.getStyleClass().add("badge-live");
+
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         Label price = new Label(listing.getPriceDisplay());
         price.setStyle("-fx-font-weight: bold; -fx-text-fill: #003974; -fx-font-size: 16px;");
-        top.getChildren().addAll(typeBadge, spacer, price);
+        top.getChildren().addAll(typeBadge, availability, spacer, price);
 
         Label title = new Label(listing.getTitle());
         title.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #1a1a2e;");
@@ -278,8 +310,19 @@ public class BuyerDashboardController {
         Label meta = new Label(listing.getCategory() + " · " + listing.getCondition());
         meta.setStyle("-fx-text-fill: #5a5a7a; -fx-font-size: 12px;");
 
+        HBox sellerRow = new HBox(6);
+        sellerRow.setAlignment(Pos.CENTER_LEFT);
         Label seller = new Label("Seller: " + listing.getSellerFullName());
         seller.setStyle("-fx-text-fill: #5a5a7a; -fx-font-size: 12px;");
+        Label rating = new Label(BrowseService.sellerRatingLabel(listing));
+        rating.setStyle("-fx-text-fill: #A68137; -fx-font-size: 12px;");
+        sellerRow.getChildren().addAll(seller, rating);
+        if (BrowseService.showVerifiedBadge(listing)) {
+            Label verified = new Label("HKUST Verified");
+            verified.getStyleClass().add("badge");
+            verified.getStyleClass().add("badge-live");
+            sellerRow.getChildren().add(verified);
+        }
 
         Label location = new Label("📍 " + listing.getMeetupLocation());
         location.setStyle("-fx-text-fill: #5a5a7a; -fx-font-size: 12px;");
@@ -311,8 +354,24 @@ public class BuyerDashboardController {
 
         HBox cardActions = new HBox(8, actionBtn, detailsBtn);
         cardActions.setAlignment(Pos.CENTER_LEFT);
-        card.getChildren().addAll(top, title, meta, seller, location, date, cardActions);
+        card.getChildren().addAll(top, title, meta, sellerRow, location, date, cardActions);
         return card;
+    }
+
+    private Image loadThumbnail(String path) {
+        if (path == null || path.isBlank()) {
+            return null;
+        }
+        try {
+            // uploaded photos live on the classpath, seed photos may be plain files
+            if (path.startsWith("/")) {
+                java.io.InputStream stream = getClass().getResourceAsStream(path);
+                return stream == null ? null : new Image(stream);
+            }
+            return new Image(path);
+        } catch (RuntimeException ex) {
+            return null;
+        }
     }
 
     // opens the step 12 detail screen and passes it the listing id
