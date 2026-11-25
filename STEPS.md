@@ -10,14 +10,14 @@
 2. After each step, run the **Verify** check before moving on. If it fails, fix it before continuing — later steps depend on earlier ones.
 3. When asking an AI model for help, give it **only the current step** plus the file(s) it names. Paste the exact signatures shown below — do not let it invent its own.
 4. Commit (or copy) the project after every ~5 steps so you can roll back.
-5. This project is **in-memory only** — data resets when the app closes. That is acceptable. Do NOT add a database.
+5. A database **is required** by the TA. Use local SQLite (`data/marketplace.db`); it is added in Step 30. The old “in-memory only” rule is superseded.
 
 ## Ground rules (read once)
 
 - **Never store plaintext passwords.** All passwords go through `PasswordUtil` (Step 1).
 - **RBAC is enforced in the service/store layer, not just by hiding buttons.** Every method that changes data must check `SessionManager.getCurrentUser()` role. Document this in the README as "service-layer access control" (there is no backend/API, so this is the correct interpretation).
-- **`DummyDataService` is the single source of truth.** Extend it — do not create parallel stores or second singletons.
-- Keep the existing code style: plain JavaFX, no external UI libraries, no new Maven dependencies except JUnit/JaCoCo at the end.
+- **`DummyDataService` is the single in-memory working store.** Extend it — do not create parallel stores or second singletons. Step 30 persists it to SQLite.
+- Keep the existing code style: plain JavaFX, no external UI libraries, and no new Maven dependencies except JUnit/JaCoCo (Step 29) and `sqlite-jdbc` + `slf4j-nop` (Step 30).
 - New screens follow the existing dashboard pattern: the dashboard FXML has a `contentPane` StackPane, and the controller builds sub-views in Java (see `BuyerDashboardController.showBrowse()` etc.). Simple dialogs can be new FXML; complex screens can be Java-built panes — match what the skeleton already does.
 
 ## Run / build commands (Windows)
@@ -418,14 +418,29 @@ private final ScheduledExecutorService exec = Executors.newSingleThreadScheduled
 
 **Verify:** `mvnw.cmd test` green; `target/site/jacoco/index.html` shows >65% branch coverage on `services`/`utils` packages. Add tests until it passes — this is a graded requirement.
 
-### Step 30 — Docs, polish, ZIP
+### Step 30 — SQLite database (TA requirement)
+
+**Files:** `pom.xml`, new `src/main/java/com/hkust/marketplace/data/Database.java`, new `src/main/java/com/hkust/marketplace/data/PersistenceService.java`, `DummyDataService.java`, `MarketplaceApp.java`, `TestState.java`.
+
+**Do exactly:**
+- Add `sqlite-jdbc` (3.46.x) and `slf4j-nop` to `pom.xml`.
+- Create a local SQLite database at `data/marketplace.db`. The JDBC URL may be overridden with `-Dmarketplace.db.url=...`.
+- Add a normalized schema with tables for users, listings, listing photos, offers, chat threads, chat messages, deals, notifications, reviews, reports, favourites and the audit log.
+- Load the saved data on startup. Seed the demo data only when the database is empty.
+- Save the whole store in one transaction after store changes and again on app close. Passwords stay as PBKDF2 hashes; never write plaintext.
+- Disable persistence during JUnit (`marketplace.persistence.disabled=true`) so tests use `resetForTests()` and never touch the real database file. Add save/reload tests using a temporary SQLite file.
+- Add `data/` and `*.db` to `.gitignore`.
+
+**Verify:** delete `data/marketplace.db`, run the app, register/create/offer/deal data, close and reopen — the data is still there. `mvnw.cmd test` is green, and the SQLite file contains the expected tables. Do not commit the runtime database file.
+
+### Step 31 — Docs, polish, ZIP
 
 **Files:** `README.md` (rewrite), JavaDoc pass, screenshots.
 
 **Do exactly:**
-- README: prerequisites (JDK 17+, IntelliJ optional), `mvnw.cmd javafx:run`, demo accounts table, **exact password rules** (≥8 chars, upper+lower+digit), architecture note (in-memory store, service-layer RBAC, soft-delete policy), screenshots checklist from `documentation.md` (execution screenshots, unit-test report, coverage report, JavaDoc).
+- README: prerequisites (JDK 17+, IntelliJ optional), `mvnw.cmd javafx:run`, demo accounts table, **exact password rules** (10–64 chars, upper+lower+digit), architecture note (SQLite persistence, service-layer RBAC, soft-delete policy), screenshots checklist from `documentation.md` (execution screenshots, unit-test report, coverage report, JavaDoc).
 - JavaDoc every public class/method (graded requirement).
-- ZIP the `HKUST-Marketplace` folder **excluding** `.idea/`, `*.iml`, `target/`.
+- ZIP the `HKUST-Marketplace` folder **excluding** `.idea/`, `*.iml`, `target/`, `data/` and `*.db`.
 
 **Verify:** fresh clone → `mvnw.cmd clean javafx:run` works; ZIP contents clean.
 
@@ -443,6 +458,7 @@ private final ScheduledExecutorService exec = Executors.newSingleThreadScheduled
 | Notification board | Steps 13 + all event steps before it |
 | Stats | Steps 10/15/18 (views, offers, deals already tracked) |
 | Tests | Step 29 needs stable service APIs from Steps 13–19 |
+| Database | Step 30 persists the store after Steps 1–29 |
 
 ## Common mistakes to avoid
 
@@ -451,4 +467,6 @@ private final ScheduledExecutorService exec = Executors.newSingleThreadScheduled
 - Two buyers claiming one giveaway — must be `synchronized` + status re-check inside the lock (Step 15).
 - Touching JavaFX controls from `BorrowScheduler` thread — always `Platform.runLater`.
 - Forgetting `MarketplaceApp.stop()` → app won't exit.
+- Committing `data/marketplace.db` / `*.db` — the runtime database is local and git-ignored.
+- Leaving JUnit persistence enabled — tests must use `marketplace.persistence.disabled=true` and `resetForTests()`.
 - Absolute photo paths — store `/images/uploads/...` classpath-relative paths only.
