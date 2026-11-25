@@ -393,6 +393,14 @@ public class ListingDetailController {
         }
     }
 
+    /**
+     * lets another screen land on the chat box, used by my deals "open chat"
+     * runs later because the scene is not showing yet when the controller is set up
+     */
+    public void focusChat() {
+        javafx.application.Platform.runLater(this::openChat);
+    }
+
     private void showWarning(String message) {
         new Alert(Alert.AlertType.WARNING,
                 message == null || message.isBlank() ? "Something went wrong." : message).showAndWait();

@@ -200,6 +200,69 @@ public final class OfferService {
         NotificationService.offerCountered(offer);
     }
 
+    /**
+     * buyer accepts the seller's counter terms (step 16)
+     * this creates the deal directly and locks the listing
+     */
+    public static synchronized void acceptCounter(String offerId) {
+        User buyer = SessionManager.requireRole(UserRole.BUYER);
+
+        Offer offer = offerId == null ? null : DummyDataService.getInstance().findOffer(offerId);
+        if (offer == null) {
+            throw new IllegalArgumentException("that offer no longer exists");
+        }
+        if (!offer.getBuyerUsername().equalsIgnoreCase(buyer.getUsername())) {
+            throw new SecurityException("that offer is not yours");
+        }
+        // the buyer can only accept their own live counter
+        if (offer.getStatus() != OfferStatus.COUNTERED) {
+            throw new IllegalStateException("that offer has no counter to accept");
+        }
+
+        Listing listing = DummyDataService.getInstance().findListing(offer.getListingId());
+        if (listing == null || listing.getStatus() != ListingStatus.LIVE) {
+            throw new IllegalStateException("that listing is no longer available");
+        }
+
+        Deal deal = new Deal();
+        deal.setListingId(listing.getId());
+        deal.setListingTitle(listing.getTitle());
+        deal.setBuyerUsername(buyer.getUsername());
+        deal.setSellerUsername(listing.getSellerUsername());
+        deal.setDealType(listing.getType());
+        deal.setStatus(DealStatus.ACTIVE);
+
+        if (listing.getType() == ListingType.SELL) {
+            if (offer.getCounterPrice() == null) {
+                throw new IllegalStateException("the counter price is missing");
+            }
+            offer.setOfferPrice(offer.getCounterPrice());
+            deal.setOfferPrice(offer.getCounterPrice());
+            listing.setStatus(ListingStatus.SOLD);
+        } else {
+            if (offer.getCounterEnd() == null || offer.getBorrowStart() == null) {
+                throw new IllegalStateException("the counter dates are missing");
+            }
+            offer.setBorrowEnd(offer.getCounterEnd());
+            deal.setBorrowStart(offer.getBorrowStart());
+            deal.setBorrowEnd(offer.getCounterEnd());
+            deal.setDueAt(offer.getCounterEnd().atTime(java.time.LocalTime.MAX));
+            listing.setStatus(ListingStatus.RESERVED);
+        }
+
+        // lock the offer and the listing together once the counter is accepted
+        offer.setStatus(OfferStatus.ACCEPTED);
+        offer.setRespondedAt(LocalDateTime.now());
+        DummyDataService.getInstance().updateOffer(offer);
+        DummyDataService.getInstance().addDeal(deal);
+        DummyDataService.getInstance().updateListing(listing);
+
+        NotificationService.offerAccepted(offer);
+        NotificationService.notify(listing.getSellerUsername(), "Counter Accepted",
+                buyer.getFullName() + " accepted your counter for '" + listing.getTitle() + "'",
+                "Offer");
+    }
+
     // shared guard: offer exists and is still waiting for an answer
     private static Offer requirePendingOffer(String offerId) {
         Offer offer = offerId == null ? null : DummyDataService.getInstance().findOffer(offerId);

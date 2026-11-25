@@ -264,6 +264,15 @@ public class DummyDataService {
         return new ArrayList<>(deals);
     }
 
+    public Deal findDeal(String id) {
+        for (Deal deal : deals) {
+            if (deal.getId().equals(id)) {
+                return deal;
+            }
+        }
+        return null;
+    }
+
     public void addDeal(Deal deal) {
         if (deal.getId() == null) {
             deal.setId("D" + dealIdCounter.getAndIncrement());
@@ -284,6 +293,38 @@ public class DummyDataService {
             n.setId("N" + notifIdCounter.getAndIncrement());
         }
         notifications.add(n);
+    }
+
+    /**
+     * marks one notification as read, the board uses this per row
+     */
+    public void markNotificationRead(String id) {
+        for (Notification notification : notifications) {
+            if (id != null && id.equals(notification.getId())) {
+                notification.setRead(true);
+                return;
+            }
+        }
+    }
+
+    /**
+     * marks every notification for one user as read
+     */
+    public void markAllNotificationsRead(String username) {
+        for (Notification notification : notifications) {
+            if (notification.getUsername().equalsIgnoreCase(username)) {
+                notification.setRead(true);
+            }
+        }
+    }
+
+    /**
+     * how many unread notifications a user has, used for the sidebar badge
+     */
+    public int getUnreadNotificationCount(String username) {
+        return (int) notifications.stream()
+                .filter(n -> n.getUsername().equalsIgnoreCase(username) && !n.isRead())
+                .count();
     }
 
     // ========== review methods ==========

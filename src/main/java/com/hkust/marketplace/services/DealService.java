@@ -13,8 +13,8 @@ import com.hkust.marketplace.utils.SessionManager;
 import java.time.LocalDateTime;
 
 /**
- * buyer side deal rules for the my deals screen (step 18)
- * every method checks the signed in buyer owns the deal before changing anything
+ * buyer actions on a deal (step 18)
+ * returning a borrowed item and marking a purchase or claim complete
  */
 public final class DealService {
 
@@ -23,11 +23,15 @@ public final class DealService {
     }
 
     /**
-     * buyer hands a borrowed item back before the due date
-     * the deal becomes RETURNED and the listing goes live again
+     * ends an active borrow early and puts the listing back on the market
      */
-    public static synchronized Deal returnEarly(String dealId) {
-        Deal deal = requireOwnActiveDeal(dealId);
+    public static synchronized void returnEarly(String dealId) {
+        User buyer = SessionManager.requireRole(UserRole.BUYER);
+        Deal deal = requireBuyerDeal(dealId, buyer);
+
+        if (deal.getStatus() != DealStatus.ACTIVE) {
+            throw new IllegalStateException("this deal is not active");
+        }
         if (deal.getDealType() != ListingType.LEND) {
             throw new IllegalStateException("only borrowed items can be returned");
         }
@@ -35,57 +39,52 @@ public final class DealService {
         deal.setStatus(DealStatus.RETURNED);
         deal.setCompletedAt(LocalDateTime.now());
 
-        // the item is free again, so the seller sees it as live in my listings
         Listing listing = DummyDataService.getInstance().findListing(deal.getListingId());
-        if (listing != null && (listing.getStatus() == ListingStatus.RESERVED
-                || listing.getStatus() == ListingStatus.LENT)) {
-            listing.setStatus(ListingStatus.LIVE);
-            DummyDataService.getInstance().updateListing(listing);
+        if (listing != null) {
+            // the item is available again for other buyers
+            if (listing.getStatus() == ListingStatus.RESERVED
+                    || listing.getStatus() == ListingStatus.LENT) {
+                listing.setStatus(ListingStatus.LIVE);
+                DummyDataService.getInstance().updateListing(listing);
+            }
         }
+
         NotificationService.borrowReturned(deal);
-        return deal;
+        NotificationService.notify(deal.getBuyerUsername(), "Return Recorded",
+                "you returned '" + deal.getListingTitle() + "'", "System");
     }
 
     /**
-     * buyer confirms they received a bought or claimed item
-     * the deal becomes COMPLETED and is ready to be rated
+     * closes a purchase or giveaway deal and triggers the review prompt later
      */
-    public static synchronized Deal markComplete(String dealId) {
-        Deal deal = requireOwnActiveDeal(dealId);
+    public static synchronized void markComplete(String dealId) {
+        User buyer = SessionManager.requireRole(UserRole.BUYER);
+        Deal deal = requireBuyerDeal(dealId, buyer);
+
+        if (deal.getStatus() != DealStatus.ACTIVE) {
+            throw new IllegalStateException("this deal is not active");
+        }
         if (deal.getDealType() == ListingType.LEND) {
-            throw new IllegalStateException("borrowed items are returned, not completed");
+            throw new IllegalStateException("use return early for a borrowed item");
         }
 
         deal.setStatus(DealStatus.COMPLETED);
         deal.setCompletedAt(LocalDateTime.now());
-        deal.setRated(false);
-
-        // the listing keeps its final status, this only fixes one that was never closed
-        Listing listing = DummyDataService.getInstance().findListing(deal.getListingId());
-        if (listing != null) {
-            ListingStatus closed = deal.getDealType() == ListingType.SELL
-                    ? ListingStatus.SOLD : ListingStatus.GIVEN;
-            if (listing.getStatus() != closed) {
-                listing.setStatus(closed);
-                DummyDataService.getInstance().updateListing(listing);
-            }
-        }
+        // the listing stays sold or given, it is not available again
         NotificationService.dealCompleted(deal);
-        return deal;
     }
 
-    // shared guard: the deal exists, belongs to the signed in buyer and is still active
-    private static Deal requireOwnActiveDeal(String dealId) {
-        User buyer = SessionManager.requireRole(UserRole.BUYER);
+    /**
+     * finds a deal and makes sure the signed in buyer actually owns it
+     */
+    private static Deal requireBuyerDeal(String dealId, User buyer) {
         Deal deal = dealId == null ? null : DummyDataService.getInstance().findDeal(dealId);
         if (deal == null) {
             throw new IllegalArgumentException("that deal no longer exists");
         }
-        if (!buyer.getUsername().equalsIgnoreCase(deal.getBuyerUsername())) {
-            throw new SecurityException("you can only change your own deals");
-        }
-        if (deal.getStatus() != DealStatus.ACTIVE) {
-            throw new IllegalStateException("that deal is no longer active");
+        if (deal.getBuyerUsername() == null
+                || !deal.getBuyerUsername().equalsIgnoreCase(buyer.getUsername())) {
+            throw new SecurityException("that deal is not yours");
         }
         return deal;
     }

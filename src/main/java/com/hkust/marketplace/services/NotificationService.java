@@ -197,6 +197,19 @@ public final class NotificationService {
     }
 
     /**
+     * tells the seller a borrowed item came back before the due date
+     */
+    public static void borrowReturned(Deal deal) {
+        if (deal == null) {
+            return;
+        }
+        notify(deal.getSellerUsername(), "Item Returned",
+                displayName(deal.getBuyerUsername()) + " returned '" + deal.getListingTitle()
+                        + "' early, it is live again",
+                SYSTEM);
+    }
+
+    /**
      * tells the buyer their borrow period has ended
      */
     public static void borrowExpired(Deal deal) {
@@ -205,6 +218,10 @@ public final class NotificationService {
         }
         notify(deal.getBuyerUsername(), "Borrow Expired",
                 "the borrow period for '" + deal.getListingTitle() + "' has ended",
+                SYSTEM);
+        // the seller should see the item is available again too
+        notify(deal.getSellerUsername(), "Borrow Ended",
+                "'" + deal.getListingTitle() + "' was automatically returned and is live again",
                 SYSTEM);
     }
 
