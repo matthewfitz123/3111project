@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.hkust.marketplace.controllers.common.NotificationBoardController"
+      spacing="12" style="-fx-padding: 4;">
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Notifications" styleClass="section-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="unreadLabel" text=""
+               style="-fx-text-fill: #9aa0b0; -fx-font-size: 12px;"/>
+        <Button text="Mark all read" onAction="#markAllRead" styleClass="btn-outline, btn-sm"/>
+    </HBox>
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <Label text="Category:" style="-fx-text-fill: #5a5a7a;"/>
+        <ComboBox fx:id="categoryFilter" prefWidth="180"/>
+    </HBox>
+    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;" VBox.vgrow="ALWAYS">
+        <VBox fx:id="notificationList" spacing="10" style="-fx-padding: 4;"/>
+    </ScrollPane>
+</VBox>

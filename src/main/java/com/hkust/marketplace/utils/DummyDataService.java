@@ -295,6 +295,38 @@ public class DummyDataService {
         notifications.add(n);
     }
 
+    /**
+     * marks one notification as read, the board uses this per row
+     */
+    public void markNotificationRead(String id) {
+        for (Notification notification : notifications) {
+            if (id != null && id.equals(notification.getId())) {
+                notification.setRead(true);
+                return;
+            }
+        }
+    }
+
+    /**
+     * marks every notification for one user as read
+     */
+    public void markAllNotificationsRead(String username) {
+        for (Notification notification : notifications) {
+            if (notification.getUsername().equalsIgnoreCase(username)) {
+                notification.setRead(true);
+            }
+        }
+    }
+
+    /**
+     * how many unread notifications a user has, used for the sidebar badge
+     */
+    public int getUnreadNotificationCount(String username) {
+        return (int) notifications.stream()
+                .filter(n -> n.getUsername().equalsIgnoreCase(username) && !n.isRead())
+                .count();
+    }
+
     // ========== review methods ==========
     public List<Review> getReviewsForSeller(String username) {
         return reviews.stream()

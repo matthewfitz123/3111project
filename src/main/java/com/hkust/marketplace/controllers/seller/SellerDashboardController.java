@@ -41,6 +41,17 @@ public class SellerDashboardController {
         if (user != null) welcomeLabel.setText("Hello, " + user.getFullName());
         currentActiveBtn = btnListings;
         showMyListings();
+        updateNotificationBadge();
+    }
+
+    /**
+     * refreshes the unread count shown in the sidebar
+     */
+    private void updateNotificationBadge() {
+        User user = SessionManager.getCurrentUser();
+        int unread = user == null ? 0
+                : DummyDataService.getInstance().getUnreadNotificationCount(user.getUsername());
+        btnNotifications.setText("  Notifications" + (unread > 0 ? " (" + unread + ")" : ""));
     }
 
     private void setActive(Button btn, String title) {
@@ -117,8 +128,240 @@ public class SellerDashboardController {
         open.setOnAction(e -> SceneManager.<ListingDetailController>switchScene(
                 "common/ListingDetailView.fxml", controller -> controller.setListingId(l.getId())));
 
-        row.getChildren().addAll(info, status, open);
+        // edit and delete are only allowed when nothing is in flight
+        boolean canModify = canModify(l);
+        String lockReason = lockReason(l);
+
+        Button edit = new Button("Edit");
+        edit.getStyleClass().addAll("btn-outline", "btn-sm");
+        edit.setDisable(!canModify);
+        edit.setOnAction(e -> editListing(l));
+        if (!canModify) {
+            edit.setTooltip(new Tooltip(lockReason));
+        }
+
+        Button delete = new Button("Delete");
+        delete.getStyleClass().addAll("btn-danger", "btn-sm");
+        delete.setDisable(!canModify);
+        delete.setOnAction(e -> deleteListing(l));
+        if (!canModify) {
+            delete.setTooltip(new Tooltip(lockReason));
+        }
+
+        HBox actions = new HBox(8, open, edit, delete);
+        actions.setAlignment(Pos.CENTER_RIGHT);
+        row.getChildren().addAll(info, status, actions);
         return row;
+    }
+
+    /**
+     * true when the status allows edits and no offer is waiting
+     */
+    private boolean canModify(Listing listing) {
+        boolean editableStatus = listing.getStatus() == ListingStatus.LIVE
+                || listing.getStatus() == ListingStatus.PENDING_REVIEW
+                || listing.getStatus() == ListingStatus.REJECTED;
+        return editableStatus && pendingOfferCount(listing) == 0;
+    }
+
+    /**
+     * counts only offers that still need an answer
+     */
+    private long pendingOfferCount(Listing listing) {
+        return DummyDataService.getInstance().getOffersForListing(listing.getId()).stream()
+                .filter(offer -> offer.getStatus() == OfferStatus.PENDING)
+                .count();
+    }
+
+    /**
+     * short reason for the disabled edit and delete buttons
+     */
+    private String lockReason(Listing listing) {
+        if (listing.getStatus() != ListingStatus.LIVE
+                && listing.getStatus() != ListingStatus.PENDING_REVIEW
+                && listing.getStatus() != ListingStatus.REJECTED) {
+            return "A " + listing.getStatus().name().toLowerCase().replace('_', ' ')
+                    + " listing cannot be edited or deleted.";
+        }
+        if (pendingOfferCount(listing) > 0) {
+            return "Answer or decline the pending offers before changing this listing.";
+        }
+        return "";
+    }
+
+    /**
+     * small dialog for the fields a seller can change after posting
+     */
+    private void editListing(Listing listing) {
+        if (!canModify(listing)) {
+            new Alert(Alert.AlertType.WARNING, lockReason(listing)).showAndWait();
+            return;
+        }
+
+        // past offers do not block an edit, but the seller should know about them
+        long historyBuyers = DummyDataService.getInstance().getOffersForListing(listing.getId())
+                .stream().map(Offer::getBuyerUsername).distinct().count();
+        if (historyBuyers > 0) {
+            Alert historyWarning = new Alert(Alert.AlertType.CONFIRMATION);
+            historyWarning.setTitle("Edit Listing");
+            historyWarning.setHeaderText("Edit: " + listing.getTitle());
+            historyWarning.setContentText(historyBuyers
+                    + " buyer(s) have offer history for this listing. Edit anyway?");
+            if (historyWarning.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
+                return;
+            }
+        }
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Edit Listing");
+        dialog.setHeaderText("Edit: " + listing.getTitle());
+
+        TextField titleField = new TextField(listing.getTitle());
+        TextArea descriptionField = new TextArea(listing.getDescription() == null
+                ? "" : listing.getDescription());
+        descriptionField.setPrefRowCount(3);
+
+        ComboBox<String> categoryBox = new ComboBox<>(
+                FXCollections.observableArrayList(DummyDataService.CATEGORIES));
+        categoryBox.setValue(listing.getCategory());
+        ComboBox<String> conditionBox = new ComboBox<>(
+                FXCollections.observableArrayList(DummyDataService.CONDITIONS));
+        conditionBox.setValue(listing.getCondition());
+        ComboBox<String> meetupBox = new ComboBox<>(
+                FXCollections.observableArrayList(DummyDataService.HKUST_LOCATIONS));
+        meetupBox.setValue(listing.getMeetupLocation());
+
+        TextField priceField = new TextField(listing.getPrice() == null
+                ? "" : String.format("%.0f", listing.getPrice()));
+        TextField daysField = new TextField(listing.getLendingDays() == null
+                ? "" : String.valueOf(listing.getLendingDays()));
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(9);
+        int row = 0;
+        grid.add(new Label("Title"), 0, row);
+        grid.add(titleField, 1, row++);
+        grid.add(new Label("Category"), 0, row);
+        grid.add(categoryBox, 1, row++);
+        grid.add(new Label("Condition"), 0, row);
+        grid.add(conditionBox, 1, row++);
+        if (listing.getType() == ListingType.SELL) {
+            grid.add(new Label("Price (HK$)"), 0, row);
+            grid.add(priceField, 1, row++);
+        }
+        if (listing.getType() == ListingType.LEND) {
+            grid.add(new Label("Lending days"), 0, row);
+            grid.add(daysField, 1, row++);
+        }
+        grid.add(new Label("Meet-up"), 0, row);
+        grid.add(meetupBox, 1, row++);
+        grid.add(new Label("Description"), 0, row);
+        grid.add(descriptionField, 1, row);
+        dialog.getDialogPane().setContent(grid);
+
+        ButtonType save = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(save, ButtonType.CANCEL);
+        dialog.showAndWait().ifPresent(button -> {
+            if (button != save) {
+                return;
+            }
+            String title = titleField.getText() == null ? "" : titleField.getText().trim();
+            if (title.isEmpty()) {
+                new Alert(Alert.AlertType.WARNING, "Title cannot be empty.").showAndWait();
+                return;
+            }
+            if (categoryBox.getValue() == null || conditionBox.getValue() == null
+                    || meetupBox.getValue() == null) {
+                new Alert(Alert.AlertType.WARNING, "Pick a category, condition and meet-up spot.").showAndWait();
+                return;
+            }
+
+            Double price = listing.getPrice();
+            Integer days = listing.getLendingDays();
+            if (listing.getType() == ListingType.SELL) {
+                price = parsePositiveDouble(priceField.getText());
+                if (price == null) {
+                    new Alert(Alert.AlertType.WARNING, "Enter a price above zero.").showAndWait();
+                    return;
+                }
+            }
+            if (listing.getType() == ListingType.LEND) {
+                days = parsePositiveInt(daysField.getText());
+                if (days == null) {
+                    new Alert(Alert.AlertType.WARNING, "Enter a lending period above zero.").showAndWait();
+                    return;
+                }
+            }
+
+            listing.setTitle(title);
+            listing.setDescription(descriptionField.getText() == null
+                    ? "" : descriptionField.getText().trim());
+            listing.setCategory(categoryBox.getValue());
+            listing.setCondition(conditionBox.getValue());
+            listing.setMeetupLocation(meetupBox.getValue());
+            listing.setPrice(listing.getType() == ListingType.SELL ? price : null);
+            listing.setLendingDays(listing.getType() == ListingType.LEND ? days : null);
+
+            // a rejected listing goes back into the review queue after an edit
+            if (listing.getStatus() == ListingStatus.REJECTED) {
+                listing.setStatus(ListingStatus.PENDING_REVIEW);
+                listing.setRejectionReason(null);
+                listing.setReviewedAt(null);
+            }
+            DummyDataService.getInstance().updateListing(listing);
+            showMyListings();
+        });
+    }
+
+    /**
+     * deletes a listing after confirmation, warning about offer history
+     */
+    private void deleteListing(Listing listing) {
+        if (!canModify(listing)) {
+            new Alert(Alert.AlertType.WARNING, lockReason(listing)).showAndWait();
+            return;
+        }
+
+        List<Offer> history = DummyDataService.getInstance().getOffersForListing(listing.getId());
+        long buyers = history.stream().map(Offer::getBuyerUsername).distinct().count();
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Delete Listing");
+        confirm.setHeaderText("Delete: " + listing.getTitle());
+        confirm.setContentText(buyers == 0
+                ? "This listing has no offer history. Delete it?"
+                : buyers + " buyer(s) have offer history for this listing. Delete anyway?");
+        if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
+            return;
+        }
+        DummyDataService.getInstance().removeListing(listing.getId());
+        showMyListings();
+    }
+
+    // tiny parser so bad input becomes a validation error, not a crash
+    private Double parsePositiveDouble(String text) {
+        if (text == null || text.isBlank()) {
+            return null;
+        }
+        try {
+            double value = Double.parseDouble(text.trim());
+            return value > 0 ? value : null;
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    // same idea for the lending days field
+    private Integer parsePositiveInt(String text) {
+        if (text == null || text.isBlank()) {
+            return null;
+        }
+        try {
+            int value = Integer.parseInt(text.trim());
+            return value > 0 ? value : null;
+        } catch (NumberFormatException ex) {
+            return null;
+        }
     }
 
     private String formatPostedAt(Listing listing) {
@@ -413,34 +656,28 @@ public class SellerDashboardController {
         contentPane.getChildren().add(new ScrollPane(root));
     }
 
+    /**
+     * loads the shared notification board for the seller
+     */
     @FXML
     private void showNotifications() {
+        // board handles read state, filters and mark all read
         setActive(btnNotifications, "Notifications");
         contentPane.getChildren().clear();
-        VBox root = new VBox(12);
-        root.setPadding(new Insets(4));
-        User user = SessionManager.getCurrentUser();
-        List<Notification> notifs = DummyDataService.getInstance()
-                .getNotificationsFor(user != null ? user.getUsername() : "");
-        if (notifs.isEmpty()) {
-            root.getChildren().add(new Label("No notifications."));
-        } else {
-            for (Notification n : notifs) {
-                VBox item = new VBox(4);
-                item.getStyleClass().add("notif-item");
-                Label t = new Label(n.getTitle());
-                t.setStyle("-fx-font-weight: bold;");
-                Label m = new Label(n.getMessage());
-                m.setWrapText(true);
-                m.setStyle("-fx-text-fill: #5a5a7a; -fx-font-size: 13px;");
-                Label meta = new Label(n.getCategory() + " · " +
-                        n.getTimestamp().format(DateTimeFormatter.ofPattern("dd MMM HH:mm")));
-                meta.setStyle("-fx-text-fill: #9aa0b0; -fx-font-size: 11px;");
-                item.getChildren().addAll(t, m, meta);
-                root.getChildren().add(item);
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/fxml/common/NotificationBoardView.fxml"));
+            javafx.scene.Parent root = loader.load();
+            com.hkust.marketplace.controllers.common.NotificationBoardController board =
+                    loader.getController();
+            if (board != null) {
+                board.setOnChanged(this::updateNotificationBadge);
             }
+            contentPane.getChildren().add(root);
+        } catch (IOException ex) {
+            new Alert(Alert.AlertType.ERROR,
+                    "Could not load the notification board.\n" + ex.getMessage()).showAndWait();
         }
-        contentPane.getChildren().add(new ScrollPane(root));
     }
 
     @FXML

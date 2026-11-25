@@ -5,6 +5,8 @@ import com.hkust.marketplace.models.DealStatus;
 import com.hkust.marketplace.models.Listing;
 import com.hkust.marketplace.models.ListingType;
 import com.hkust.marketplace.models.Notification;
+import com.hkust.marketplace.models.Offer;
+import com.hkust.marketplace.models.OfferStatus;
 import com.hkust.marketplace.models.User;
 import com.hkust.marketplace.models.UserRole;
 import com.hkust.marketplace.controllers.common.ListingDetailController;
@@ -16,6 +18,7 @@ import com.hkust.marketplace.utils.SceneManager;
 import com.hkust.marketplace.utils.SessionManager;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -23,6 +26,7 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -57,6 +61,17 @@ public class BuyerDashboardController {
         }
         currentActiveBtn = btnBrowse;
         showBrowse();
+        updateNotificationBadge();
+    }
+
+    /**
+     * keeps the sidebar count in sync with the shared board
+     */
+    private void updateNotificationBadge() {
+        User user = SessionManager.getCurrentUser();
+        int unread = user == null ? 0
+                : DummyDataService.getInstance().getUnreadNotificationCount(user.getUsername());
+        btnNotifications.setText("  Notifications" + (unread > 0 ? " (" + unread + ")" : ""));
     }
 
     private void setActive(Button btn, String title) {
@@ -413,12 +428,26 @@ public class BuyerDashboardController {
         User me = SessionManager.getCurrentUser();
         List<Deal> deals = me == null ? new ArrayList<>()
                 : new ArrayList<>(DummyDataService.getInstance().getDealsForBuyer(me.getUsername()));
+
+        // countered offers are not deals yet, show them first so the buyer can accept
+        List<Offer> countered = me == null ? new ArrayList<>()
+                : DummyDataService.getInstance().getOffersForBuyer(me.getUsername()).stream()
+                        .filter(o -> o.getStatus() == OfferStatus.COUNTERED)
+                        .toList();
+        if (!countered.isEmpty()) {
+            Label counterHeading = new Label("Counter offers waiting for you");
+            counterHeading.setStyle("-fx-font-weight: bold; -fx-text-fill: #003974;");
+            root.getChildren().add(counterHeading);
+            for (Offer offer : countered) {
+                root.getChildren().add(createCounterCard(offer));
+            }
+        }
         // active deals first since they still need something from the buyer, then newest
         deals.sort(Comparator
                 .comparing((Deal d) -> d.getStatus() != DealStatus.ACTIVE)
                 .thenComparing(Deal::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())));
 
-        if (deals.isEmpty()) {
+        if (deals.isEmpty() && countered.isEmpty()) {
             Label empty = new Label("No deals yet. Make an offer, borrow or claim an item from Browse.");
             empty.setStyle("-fx-text-fill: #5a5a7a;");
             root.getChildren().add(empty);
@@ -431,6 +460,46 @@ public class BuyerDashboardController {
         ScrollPane scroll = new ScrollPane(root);
         scroll.setFitToWidth(true);
         contentPane.getChildren().add(scroll);
+    }
+
+    /**
+     * shows a seller counter offer with a button to accept it
+     */
+    private VBox createCounterCard(Offer offer) {
+        Listing listing = DummyDataService.getInstance().findListing(offer.getListingId());
+        String title = listing != null ? listing.getTitle() : "Listing " + offer.getListingId();
+
+        VBox card = new VBox(8);
+        card.getStyleClass().add("card");
+        card.setPadding(new Insets(14));
+
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        Label terms = new Label(offer.getType() == ListingType.SELL
+                ? "Counter price: HK$" + String.format("%.0f", offer.getCounterPrice())
+                : "New return date: " + offer.getCounterEnd());
+        terms.setStyle("-fx-text-fill: #1a1a2e; -fx-font-size: 13px;");
+
+        Button accept = new Button("Accept counter");
+        accept.getStyleClass().addAll("btn-success", "btn-sm");
+        accept.setOnAction(e -> {
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                    "Accept the seller's counter for '" + title + "'?");
+            if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
+                return;
+            }
+            try {
+                OfferService.acceptCounter(offer.getId());
+                new Alert(Alert.AlertType.INFORMATION, "Counter accepted. Deal created.").showAndWait();
+            } catch (RuntimeException ex) {
+                new Alert(Alert.AlertType.WARNING,
+                        ex.getMessage() == null ? "Something went wrong." : ex.getMessage()).showAndWait();
+            }
+            showMyDeals();
+        });
+
+        card.getChildren().addAll(titleLabel, terms, accept);
+        return card;
     }
 
     private VBox createDealCard(Deal deal) {
@@ -625,42 +694,28 @@ public class BuyerDashboardController {
         contentPane.getChildren().add(root);
     }
 
+    /**
+     * loads the shared notification board instead of rebuilding it here
+     */
     @FXML
     private void showNotifications() {
+        // the board handles read state and the category filter itself
         setActive(btnNotifications, "Notification Board");
         contentPane.getChildren().clear();
-
-        VBox root = new VBox(12);
-        root.setPadding(new Insets(4));
-
-        User user = SessionManager.getCurrentUser();
-        List<Notification> notifs = DummyDataService.getInstance()
-                .getNotificationsFor(user != null ? user.getUsername() : "");
-
-        if (notifs.isEmpty()) {
-            Label empty = new Label("No notifications yet.");
-            empty.setStyle("-fx-text-fill: #5a5a7a;");
-            root.getChildren().add(empty);
-        } else {
-            for (Notification n : notifs) {
-                VBox item = new VBox(4);
-                item.getStyleClass().add("notif-item");
-                Label title = new Label(n.getTitle());
-                title.setStyle("-fx-font-weight: bold; -fx-text-fill: #1a1a2e;");
-                Label msg = new Label(n.getMessage());
-                msg.setStyle("-fx-text-fill: #5a5a7a; -fx-font-size: 13px;");
-                msg.setWrapText(true);
-                Label meta = new Label(n.getCategory() + " · " +
-                        n.getTimestamp().format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm")));
-                meta.setStyle("-fx-text-fill: #9aa0b0; -fx-font-size: 11px;");
-                item.getChildren().addAll(title, msg, meta);
-                root.getChildren().add(item);
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/fxml/common/NotificationBoardView.fxml"));
+            javafx.scene.Parent root = loader.load();
+            com.hkust.marketplace.controllers.common.NotificationBoardController board =
+                    loader.getController();
+            if (board != null) {
+                board.setOnChanged(this::updateNotificationBadge);
             }
+            contentPane.getChildren().add(root);
+        } catch (IOException ex) {
+            new Alert(Alert.AlertType.ERROR,
+                    "Could not load the notification board.\n" + ex.getMessage()).showAndWait();
         }
-
-        ScrollPane scroll = new ScrollPane(root);
-        scroll.setFitToWidth(true);
-        contentPane.getChildren().add(scroll);
     }
 
     @FXML
