@@ -1,5 +1,8 @@
 package com.hkust.marketplace.models;
 
+/**
+ * lifecycle states for a deal
+ */
 public enum DealStatus {
     PENDING, //offer accepted
     ACTIVE, // item borrowed/sold

@@ -9,6 +9,9 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
+/**
+ * seller registration form with bio and meet up details
+ */
 public class SellerRegisterController {
 
     @FXML private TextField usernameField;

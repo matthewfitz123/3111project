@@ -3,6 +3,9 @@ package com.hkust.marketplace.models;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * an accepted offer or claim turned into an active or completed deal
+ */
 public class Deal {
     private String id;
     private String listingId;

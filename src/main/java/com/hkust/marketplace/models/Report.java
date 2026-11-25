@@ -2,6 +2,9 @@ package com.hkust.marketplace.models;
 
 import java.time.LocalDateTime;
 
+/**
+ * a buyer report about a listing for admin moderation
+ */
 public class Report {
     private String id;
     private String listingId;

@@ -3,6 +3,9 @@ package com.hkust.marketplace.controllers;
 import com.hkust.marketplace.utils.SceneManager;
 import javafx.fxml.FXML;
 
+/**
+ * entry screen where a user picks the buyer seller or admin portal
+ */
 public class WelcomeController {
 
     @FXML

@@ -9,6 +9,9 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
+/**
+ * buyer registration form with username password and residence rules
+ */
 public class BuyerRegisterController {
 
     @FXML private TextField usernameField;

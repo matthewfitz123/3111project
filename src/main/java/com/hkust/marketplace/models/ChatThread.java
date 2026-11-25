@@ -2,6 +2,9 @@ package com.hkust.marketplace.models;
 
 import java.time.LocalDateTime;
 
+/**
+ * private chat thread between one buyer and one seller for a listing
+ */
 public class ChatThread {
     private String id;
     private String listingId;

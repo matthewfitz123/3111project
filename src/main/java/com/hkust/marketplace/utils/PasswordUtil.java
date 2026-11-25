@@ -11,6 +11,9 @@ import java.util.Base64;
 // each stored value has its own random salt and iteration count
 // the format will looks something like
 // pbkdf2$120000$salt$hash
+/**
+ * small helper for hashing and checking passwords with salted pbkdf2
+ */
 public final class PasswordUtil {
 
     // 120k rounds is reasonable i reckon but change if u want
