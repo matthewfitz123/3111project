@@ -1,17 +1,23 @@
 package com.hkust.marketplace.services;
 
+import com.hkust.marketplace.models.Deal;
+import com.hkust.marketplace.models.DealStatus;
 import com.hkust.marketplace.models.Listing;
 import com.hkust.marketplace.models.ListingStatus;
 import com.hkust.marketplace.models.ListingType;
+import com.hkust.marketplace.models.Offer;
 import com.hkust.marketplace.models.OfferStatus;
 import com.hkust.marketplace.models.User;
 import com.hkust.marketplace.models.UserRole;
 import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.SessionManager;
 
+import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 /**
- * seller-side listing rules (step 20)
- * keeps the edit and delete guards in one place so the dashboard stays simple
+ * seller My Listings edit and delete (task 2.5) and admin review or takedown (tasks 3.2 and 3.7)
  */
 public final class ListingService {
 
@@ -103,6 +109,82 @@ public final class ListingService {
             throw new IllegalStateException("this listing cannot be deleted right now");
         }
         DummyDataService.getInstance().removeListing(listingId);
+    }
+
+    /**
+     * approves a pending listing and tells the seller (task 3.2)
+     */
+    public static void approveListing(Listing listing) {
+        SessionManager.requireRole(UserRole.ADMIN);
+        if (listing == null) {
+            throw new IllegalArgumentException("that listing no longer exists");
+        }
+        listing.setStatus(ListingStatus.LIVE);
+        listing.setReviewedAt(LocalDateTime.now());
+        DummyDataService.getInstance().updateListing(listing);
+        NotificationService.listingApproved(listing);
+    }
+
+    /**
+     * rejects a pending listing with a required reason and tells the seller (task 3.2)
+     */
+    public static void rejectListing(Listing listing, String reason) {
+        SessionManager.requireRole(UserRole.ADMIN);
+        if (listing == null) {
+            throw new IllegalArgumentException("that listing no longer exists");
+        }
+        String text = reason == null ? "" : reason.trim();
+        if (text.isEmpty()) {
+            throw new IllegalArgumentException("reason is required");
+        }
+        listing.setStatus(ListingStatus.REJECTED);
+        listing.setRejectionReason(text);
+        listing.setReviewedAt(LocalDateTime.now());
+        DummyDataService.getInstance().updateListing(listing);
+        NotificationService.listingRejected(listing, text);
+    }
+
+    /**
+     * takes a listing down, keeps it as REMOVED, and tells the seller plus
+     * buyers with a pending or countered offer or an active deal (task 3.7)
+     */
+    public static void takeDownListing(Listing listing, String reason) {
+        SessionManager.requireRole(UserRole.ADMIN);
+        if (listing == null) {
+            throw new IllegalArgumentException("that listing no longer exists");
+        }
+        String text = reason == null ? "" : reason.trim();
+        if (text.isEmpty()) {
+            throw new IllegalArgumentException("reason is required");
+        }
+        listing.setStatus(ListingStatus.REMOVED);
+        listing.setRejectionReason(text);
+        listing.setReviewedAt(LocalDateTime.now());
+        DummyDataService store = DummyDataService.getInstance();
+        store.updateListing(listing);
+        NotificationService.listingRemoved(listing, text);
+        String notice = "'" + listing.getTitle() + "' was removed by an admin: " + text;
+        for (String buyer : affectedBuyers(listing)) {
+            NotificationService.notify(buyer, "Listing Removed", notice, "System");
+        }
+    }
+
+    private static Set<String> affectedBuyers(Listing listing) {
+        DummyDataService store = DummyDataService.getInstance();
+        Set<String> buyers = new LinkedHashSet<>();
+        for (Offer offer : store.getOffersForListing(listing.getId())) {
+            if (offer.getStatus() == OfferStatus.PENDING || offer.getStatus() == OfferStatus.COUNTERED) {
+                buyers.add(offer.getBuyerUsername());
+            }
+        }
+        for (Deal deal : store.getAllDeals()) {
+            if (listing.getId().equals(deal.getListingId())
+                    && (deal.getStatus() == DealStatus.PENDING || deal.getStatus() == DealStatus.ACTIVE)) {
+                buyers.add(deal.getBuyerUsername());
+            }
+        }
+        buyers.remove(listing.getSellerUsername());
+        return buyers;
     }
 
     // shared guard so sellers cannot touch another seller's listing

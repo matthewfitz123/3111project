@@ -9,7 +9,7 @@ import com.hkust.marketplace.models.Offer;
 import com.hkust.marketplace.models.OfferStatus;
 import com.hkust.marketplace.models.User;
 import com.hkust.marketplace.models.UserRole;
-import com.hkust.marketplace.services.NotificationService;
+import com.hkust.marketplace.services.ListingService;
 import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.SessionManager;
 import javafx.beans.property.SimpleObjectProperty;
@@ -35,10 +35,8 @@ import java.util.Set;
 import java.util.function.Function;
 
 /**
- * admin manage-all-listings screen (step 27)
- * embedded inside the admin dashboard content pane
- * admins can edit any field, add listings on behalf of a seller,
- * and remove listings with a required reason
+ * admin manage listings (task 3.7)
+ * edit any listing, add one for a seller, or take a live listing down with a reason
  */
 public class ManageListingsController {
 
@@ -326,16 +324,7 @@ public class ManageListingsController {
             return;
         }
 
-        l.setStatus(ListingStatus.REMOVED);
-        l.setRejectionReason(reason.get());
-        l.setReviewedAt(LocalDateTime.now());
-        data.updateListing(l);
-
-        NotificationService.listingRemoved(l, reason.get());
-        String notice = "'" + l.getTitle() + "' was removed by an admin: " + reason.get();
-        for (String buyer : buyers) {
-            NotificationService.notify(buyer, "Listing Removed", notice, "System");
-        }
+        ListingService.takeDownListing(l, reason.get());
         data.logAudit(actor(), "LISTING_REMOVED",
                 l.getId() + " '" + l.getTitle() + "' reason='" + reason.get() + "'");
         render();

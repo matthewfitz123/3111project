@@ -477,7 +477,7 @@ public class BuyerDashboardController {
     }
 
     /**
-     * My Deals (task 1.6): accepted offers, borrows and claims, plus past deals
+     * My Deals (task 1.7): accepted offers, borrows and claims, plus past deals
      * each card can reopen the listing and chat; borrows show a due date and
      * Return early, and a completed purchase or claim opens the review dialog
      */
@@ -808,7 +808,7 @@ public class BuyerDashboardController {
     }
 
     /**
-     * opens the shared notification board (task 1.8)
+     * opens the shared notification board (task 1.9)
      */
     @FXML
     private void showNotifications() {
@@ -832,7 +832,7 @@ public class BuyerDashboardController {
     }
 
     /**
-     * Manage Profile (task 1.7)
+     * Manage Profile (task 1.8)
      * edits full name and, when typed, the password using the registration rules
      * success and failure are alert dialogs; residence hall can be changed too
      */

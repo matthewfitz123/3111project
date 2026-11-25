@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * task 1.6 My Deals rules that live in DealService and BorrowScheduler
+ * task 1.7 My Deals rules that live in DealService and BorrowScheduler
  */
 class BuyerMyDealsTest {
 

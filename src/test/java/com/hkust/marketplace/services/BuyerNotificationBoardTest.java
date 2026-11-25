@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * task 1.8 buyer notification categories, timestamps and read state
+ * task 1.9 buyer notification categories, timestamps and read state
  */
 class BuyerNotificationBoardTest {
 

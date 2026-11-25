@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * task 1.10 review after a completed deal, seller average and the buyer's record
+ * task 1.11 review after a completed purchase or returned borrow
  */
 class BuyerReviewTest {
 
@@ -73,7 +73,7 @@ class BuyerReviewTest {
     }
 
     @Test
-    void aReturnedBorrowCannotBeReviewed() {
+    void aReturnedBorrowCanBeReviewed() {
         User alice = login("alice");
         Offer offer = OfferService.submitOffer(store.findListing("L103"), alice, null,
                 LocalDate.now(), LocalDate.now().plusDays(1), null);
@@ -87,9 +87,10 @@ class BuyerReviewTest {
         DealService.returnEarly(deal.getId());
 
         assertEquals(DealStatus.RETURNED, deal.getStatus());
-        User buyer = store.findUser("alice");
-        assertThrows(IllegalStateException.class,
-                () -> ReviewService.submitReview(deal, buyer, 5, "thanks"));
+        User buyer = login("alice");
+        Review review = ReviewService.submitReview(deal, buyer, 5, "thanks");
+        assertEquals(5, review.getRating());
+        assertTrue(deal.isRated());
     }
 
     private Deal completedSale() {

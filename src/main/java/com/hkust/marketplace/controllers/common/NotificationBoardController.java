@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * notification board (task 1.8)
+ * notification board (task 1.9)
  * newest first, with category, timestamp and read state, plus mark-all-read
  */
 public class NotificationBoardController {

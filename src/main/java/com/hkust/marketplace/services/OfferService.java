@@ -119,7 +119,7 @@ public final class OfferService {
     }
 
     /**
-     * seller accepts a pending offer (step 16)
+     * seller accepts a pending offer (task 2.6)
      * creates the deal, locks the listing and tells the buyer
      */
     public static synchronized void acceptOffer(String offerId) {

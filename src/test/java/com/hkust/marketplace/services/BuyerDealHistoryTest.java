@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * task 1.9 buyer history labels, filters and the update after a deal is completed
+ * task 1.10 buyer history labels, filters and the update after a deal is completed
  */
 class BuyerDealHistoryTest {
 
@@ -84,7 +84,7 @@ class BuyerDealHistoryTest {
     }
 
     @Test
-    void anExpiredBorrowIsNotBuyerHistory() {
+    void anExpiredBorrowAppearsInBuyerHistory() {
         User alice = login("alice");
         Offer offer = OfferService.submitOffer(store.findListing("L103"), alice, null,
                 LocalDate.now(), LocalDate.now().plusDays(1), null);
@@ -98,7 +98,8 @@ class BuyerDealHistoryTest {
         BorrowScheduler.checkExpired(java.time.LocalDateTime.now());
 
         assertEquals(DealStatus.EXPIRED, deal.getStatus());
-        assertFalse(DealHistoryService.buyerHistory("alice").contains(deal));
+        assertTrue(DealHistoryService.buyerHistory("alice").contains(deal));
+        assertEquals("Expired", DealHistoryService.statusLabel(deal));
         assertEquals("Borrowed", DealHistoryService.typeLabel(deal));
     }
 }

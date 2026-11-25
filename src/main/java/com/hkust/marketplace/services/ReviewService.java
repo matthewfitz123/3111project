@@ -9,7 +9,7 @@ import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.SessionManager;
 
 /**
- * rate a seller after a completed deal (task 1.10)
+ * rate a seller after a completed purchase or a returned borrow (task 1.11)
  * one written review and a 1–5 rating per completed deal, then the seller average
  * is recalculated from reviews that are still visible on the profile and listing
  */
@@ -34,8 +34,8 @@ public final class ReviewService {
                 || !fresh.getBuyerUsername().equalsIgnoreCase(current.getUsername())) {
             throw new SecurityException("that deal is not yours");
         }
-        if (fresh.getStatus() != DealStatus.COMPLETED) {
-            throw new IllegalStateException("only completed deals can be reviewed");
+        if (fresh.getStatus() != DealStatus.COMPLETED && fresh.getStatus() != DealStatus.RETURNED) {
+            throw new IllegalStateException("only a completed purchase or a returned borrow can be reviewed");
         }
         if (fresh.isRated()) {
             throw new IllegalStateException("you already reviewed this deal");
@@ -64,7 +64,7 @@ public final class ReviewService {
     }
 
     /**
-     * seller answers a review on their own profile (step 23), sending again edits the reply
+     * seller answers a review (task 2.10); sending again edits the reply and notifies the buyer
      */
     public static synchronized Review replyToReview(String reviewId, String reply) {
         Review review = requireOwnReview(reviewId);

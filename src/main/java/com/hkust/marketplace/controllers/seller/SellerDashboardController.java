@@ -593,6 +593,9 @@ public class SellerDashboardController {
         }
     }
 
+    /**
+     * seller profile (task 2.7): full name, password, bio and preferred meet-up
+     */
     @FXML
     private void showProfile() {
         setActive(btnProfile, "My Profile");

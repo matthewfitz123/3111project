@@ -157,6 +157,9 @@ public class AdminDashboardController {
         }
     }
 
+    /**
+     * admin profile (task 3.4): full name and password
+     */
     @FXML
     private void showProfile() {
         setActive(btnProfile, "My Profile");

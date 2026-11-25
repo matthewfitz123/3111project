@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * buyer deal history screen (task 1.9)
+ * buyer deal history screen (task 1.10)
  * title, seller, date, type and outcome, filtered by date, category and search
  */
 public class DealHistoryController {

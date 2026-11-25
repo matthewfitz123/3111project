@@ -16,8 +16,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * seller dashboard statistics (step 28)
- * everything is computed on the fly from the in-memory store
+ * seller stats (task 2.9)
+ * views, offers, completed deals and rating, plus per-listing rows for the bar chart
+ * and status or outcome counts for the pie charts
  */
 public final class StatsService {
 

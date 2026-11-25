@@ -14,8 +14,9 @@ import javafx.scene.layout.*;
 import java.util.Optional;
 
 /**
- * admin user management screen (step 26)
- * embedded inside the admin dashboard content pane
+ * admin user management (task 3.3)
+ * view, edit, deactivate or soft-delete a buyer or seller
+ * listings, deals and chat stay in the store
  */
 public class ManageUsersController {
 

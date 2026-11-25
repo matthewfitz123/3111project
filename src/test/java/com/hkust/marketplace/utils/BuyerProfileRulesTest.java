@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * task 1.7 checks used by the buyer profile form
+ * task 1.8 checks used by the buyer profile form
  * the form itself only shows success and failure alerts
  */
 class BuyerProfileRulesTest {

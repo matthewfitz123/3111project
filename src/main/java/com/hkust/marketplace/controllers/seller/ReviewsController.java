@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * seller's own reviews with reply and flag (step 23)
- * hidden reviews stay listed here so the seller can see what an admin is checking
+ * seller reviews (task 2.10)
+ * reply or flag; a reply notifies the buyer
  */
 public class ReviewsController {
 

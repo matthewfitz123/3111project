@@ -13,7 +13,7 @@ import com.hkust.marketplace.utils.SessionManager;
 import java.time.LocalDateTime;
 
 /**
- * buyer My Deals actions (task 1.6)
+ * buyer My Deals actions (task 1.7)
  * return a borrow before it expires, or mark a purchase or claim complete
  * so the listing status and the later review prompt stay in step with the deal
  */
@@ -24,7 +24,7 @@ public final class DealService {
     }
 
     /**
-     * self-return for an active borrow (task 1.6)
+     * self-return for an active borrow (task 1.7)
      * the deal becomes RETURNED and a reserved or lent listing goes back to LIVE
      */
     public static synchronized void returnEarly(String dealId) {
@@ -57,8 +57,8 @@ public final class DealService {
     }
 
     /**
-     * marks a purchase or claim complete (task 1.6)
-     * leaves rated false so My Deals can open the rate-seller prompt (task 1.10)
+     * marks a purchase or claim complete (task 1.7)
+     * leaves rated false so My Deals can open the rate-seller prompt (task 1.11)
      * the listing stays SOLD or GIVEN
      */
     public static synchronized void markComplete(String dealId) {

@@ -10,7 +10,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
 /**
- * seller registration form with bio and meet up details
+ * seller registration (task 2.1)
+ * same credential rules as buyers, plus a bio and a preferred meet-up location
  */
 public class SellerRegisterController {
 

@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * admin all-deals record screen (step 25)
- * embedded inside the admin dashboard content pane
+ * admin all-deals record (task 3.5)
+ * title, buyer, seller, dates, type and status, with search and filters
  */
 public class AllDealsController {
 
