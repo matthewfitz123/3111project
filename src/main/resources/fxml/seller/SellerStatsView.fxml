@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.hkust.marketplace.controllers.seller.StatsController"
+            fitToWidth="true">
+    <VBox spacing="16" style="-fx-padding: 4;">
+        <Label text="Seller Statistics" styleClass="section-title"/>
+
+        <Label fx:id="emptyLabel" text="You have not posted any listings yet."
+               style="-fx-text-fill: #5a5a7a;" visible="false" managed="false"/>
+
+        <HBox fx:id="metricsBox" spacing="16"/>
+
+        <BarChart fx:id="barChart" title="Views, Offers &amp; Deals per Listing"
+                  legendVisible="true" prefHeight="300" minHeight="300">
+            <xAxis>
+                <CategoryAxis label="Listing"/>
+            </xAxis>
+            <yAxis>
+                <NumberAxis label="Count"/>
+            </yAxis>
+        </BarChart>
+
+        <PieChart fx:id="pieChart" title="Deal Outcomes" prefHeight="300" minHeight="300"/>
+    </VBox>
+</ScrollPane>

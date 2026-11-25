@@ -14,11 +14,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.chart.BarChart;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.PieChart;
-import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
@@ -549,66 +544,15 @@ public class SellerDashboardController {
     private void showStats() {
         setActive(btnStats, "Seller Stats");
         contentPane.getChildren().clear();
-
-        VBox root = new VBox(20);
-        root.setPadding(new Insets(4));
-
-        User user = SessionManager.getCurrentUser();
-        List<Listing> myListings = DummyDataService.getInstance()
-                .getListingsBySeller(user != null ? user.getUsername() : "");
-
-        // Metric cards
-        HBox metrics = new HBox(16);
-        metrics.getChildren().addAll(
-                metricCard("Listings", String.valueOf(myListings.size()), "#003974"),
-                metricCard("Avg Rating", String.format("%.1f", user != null ? user.getAverageRating() : 0), "#A68137"),
-                metricCard("Reviews", String.valueOf(user != null ? user.getRatingCount() : 0), "#2e7d32"),
-                metricCard("Views (demo)", "128", "#1565c0")
-        );
-        root.getChildren().add(metrics);
-
-        // Bar chart
-        CategoryAxis xAxis = new CategoryAxis();
-        NumberAxis yAxis = new NumberAxis();
-        BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
-        barChart.setTitle("Listings by Category (demo data)");
-        barChart.setLegendVisible(false);
-        barChart.setPrefHeight(280);
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.getData().add(new XYChart.Data<>("Textbooks", 3));
-        series.getData().add(new XYChart.Data<>("Electronics", 5));
-        series.getData().add(new XYChart.Data<>("Furniture", 2));
-        series.getData().add(new XYChart.Data<>("Others", 1));
-        barChart.getData().add(series);
-
-        // Pie chart
-        PieChart pie = new PieChart();
-        pie.setTitle("Listing Status Distribution");
-        pie.setPrefHeight(280);
-        pie.getData().add(new PieChart.Data("Live", 4));
-        pie.getData().add(new PieChart.Data("Pending", 1));
-        pie.getData().add(new PieChart.Data("Sold", 2));
-
-        HBox charts = new HBox(20, barChart, pie);
-        root.getChildren().add(charts);
-
-        ScrollPane scroll = new ScrollPane(root);
-        scroll.setFitToWidth(true);
-        contentPane.getChildren().add(scroll);
-    }
-
-    private VBox metricCard(String label, String value, String color) {
-        VBox card = new VBox(4);
-        card.getStyleClass().add("card");
-        card.setAlignment(Pos.CENTER);
-        card.setPrefWidth(140);
-        card.setPadding(new Insets(16));
-        Label val = new Label(value);
-        val.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: " + color + ";");
-        Label lbl = new Label(label);
-        lbl.setStyle("-fx-text-fill: #5a5a7a; -fx-font-size: 12px;");
-        card.getChildren().addAll(val, lbl);
-        return card;
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/fxml/seller/SellerStatsView.fxml"));
+            Parent root = loader.load();
+            contentPane.getChildren().add(root);
+        } catch (IOException e) {
+            new Alert(Alert.AlertType.ERROR,
+                    "Could not load the stats screen.\n" + e.getMessage()).showAndWait();
+        }
     }
 
     @FXML
