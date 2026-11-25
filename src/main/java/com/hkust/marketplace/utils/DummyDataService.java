@@ -265,6 +265,13 @@ public class DummyDataService {
                 .collect(Collectors.toList());
     }
 
+    public List<Deal> getDealsForSeller(String username) {
+        return deals.stream()
+                .filter(d -> d.getSellerUsername() != null
+                        && d.getSellerUsername().equalsIgnoreCase(username))
+                .collect(Collectors.toList());
+    }
+
     public List<Deal> getAllDeals() {
         return new ArrayList<>(deals);
     }
@@ -430,6 +437,20 @@ public class DummyDataService {
             }
         }
         return pending;
+    }
+
+    /**
+     * every offer on the seller's listings, whatever the status
+     */
+    public List<Offer> getOffersForSeller(String username) {
+        List<Offer> received = new ArrayList<>();
+        for (Offer offer : offers) {
+            Listing listing = findListing(offer.getListingId());
+            if (listing != null && listing.getSellerUsername().equalsIgnoreCase(username)) {
+                received.add(offer);
+            }
+        }
+        return received;
     }
 
     /**

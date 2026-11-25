@@ -70,111 +70,34 @@ public class AdminDashboardController {
 
     @FXML
     private void showAllListings() {
+        // the manage-listings screen lives in its own fxml/controller (step 27)
         setActive(btnAllListings, "Manage All Listings");
         contentPane.getChildren().clear();
-
-        VBox root = new VBox(12);
-        root.setPadding(new Insets(4));
-
-        Button addBtn = new Button("+ Add Listing (on behalf of seller)");
-        addBtn.getStyleClass().add("btn-primary");
-        addBtn.setOnAction(e -> new Alert(Alert.AlertType.INFORMATION,
-                "Admin can create a listing on behalf of a seller here.\nSame form fields as Seller Create Listing.\n(UI placeholder)").showAndWait());
-        root.getChildren().add(addBtn);
-
-        for (Listing l : DummyDataService.getInstance().getAllListings()) {
-            HBox row = new HBox(12);
-            row.getStyleClass().add("card");
-            row.setAlignment(Pos.CENTER_LEFT);
-            row.setPadding(new Insets(12));
-
-            VBox info = new VBox(3);
-            HBox.setHgrow(info, Priority.ALWAYS);
-            Label t = new Label(l.getTitle());
-            t.setStyle("-fx-font-weight: bold;");
-            Label m = new Label(l.getSellerFullName() + " · " + l.getTypeDisplay() + " · " + l.getStatus());
-            m.setStyle("-fx-text-fill: #5a5a7a; -fx-font-size: 12px;");
-            info.getChildren().addAll(t, m);
-
-            Button edit = new Button("Edit");
-            edit.getStyleClass().addAll("btn-outline", "btn-sm");
-            edit.setOnAction(e -> new Alert(Alert.AlertType.INFORMATION, "Edit listing dialog (demo).").showAndWait());
-
-            Button remove = new Button("Remove");
-            remove.getStyleClass().addAll("btn-danger", "btn-sm");
-            remove.setOnAction(e -> {
-                Alert conf = new Alert(Alert.AlertType.CONFIRMATION, "Permanently remove this listing?");
-                conf.showAndWait().ifPresent(r -> {
-                    if (r == ButtonType.OK) {
-                        DummyDataService.getInstance().removeListing(l.getId());
-                        showAllListings();
-                    }
-                });
-            });
-
-            row.getChildren().addAll(info, edit, remove);
-            root.getChildren().add(row);
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/fxml/admin/ManageListingsView.fxml"));
+            contentPane.getChildren().add(loader.load());
+        } catch (IOException e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR,
+                    "Could not load manage listings screen.\n" + e.getMessage()).showAndWait();
         }
-        ScrollPane scroll = new ScrollPane(root);
-        scroll.setFitToWidth(true);
-        contentPane.getChildren().add(scroll);
     }
 
     @FXML
     private void showUsers() {
+        // the user management screen lives in its own fxml/controller (step 26)
         setActive(btnUsers, "Manage All Users");
         contentPane.getChildren().clear();
-
-        VBox root = new VBox(12);
-        root.setPadding(new Insets(4));
-
-        for (User u : DummyDataService.getInstance().getAllUsers()) {
-            if (u.getRole() == UserRole.ADMIN) continue;
-
-            HBox row = new HBox(12);
-            row.getStyleClass().add("card");
-            row.setAlignment(Pos.CENTER_LEFT);
-            row.setPadding(new Insets(12));
-
-            VBox info = new VBox(3);
-            HBox.setHgrow(info, Priority.ALWAYS);
-            Label name = new Label(u.getFullName() + " (@" + u.getUsername() + ")");
-            name.setStyle("-fx-font-weight: bold;");
-            Label role = new Label(u.getRole().name() + (u.isActive() ? " · Active" : " · Deactivated"));
-            role.setStyle("-fx-text-fill: #5a5a7a; -fx-font-size: 12px;");
-            info.getChildren().addAll(name, role);
-
-            Button edit = new Button("Edit");
-            edit.getStyleClass().addAll("btn-outline", "btn-sm");
-            edit.setOnAction(e -> new Alert(Alert.AlertType.INFORMATION, "Edit user dialog (demo).").showAndWait());
-
-            Button toggle = new Button(u.isActive() ? "Deactivate" : "Activate");
-            toggle.getStyleClass().addAll(u.isActive() ? "btn-danger" : "btn-success", "btn-sm");
-            toggle.setOnAction(e -> {
-                u.setActive(!u.isActive());
-                showUsers();
-            });
-
-            Button delete = new Button("Delete");
-            delete.getStyleClass().addAll("btn-danger", "btn-sm");
-            delete.setOnAction(e -> {
-                Alert conf = new Alert(Alert.AlertType.CONFIRMATION,
-                        "Permanently delete user @" + u.getUsername() + "?");
-                conf.showAndWait().ifPresent(r -> {
-                    if (r == ButtonType.OK) {
-                        u.setActive(false);
-                        new Alert(Alert.AlertType.INFORMATION, "User deactivated (demo safety).").showAndWait();
-                        showUsers();
-                    }
-                });
-            });
-
-            row.getChildren().addAll(info, edit, toggle, delete);
-            root.getChildren().add(row);
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/fxml/admin/ManageUsersView.fxml"));
+            contentPane.getChildren().add(loader.load());
+        } catch (IOException e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR,
+                    "Could not load user management screen.\n" + e.getMessage()).showAndWait();
         }
-        ScrollPane scroll = new ScrollPane(root);
-        scroll.setFitToWidth(true);
-        contentPane.getChildren().add(scroll);
     }
 
     @FXML
