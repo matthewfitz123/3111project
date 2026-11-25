@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.hkust.marketplace.controllers.buyer.DealHistoryController"
+      spacing="12" style="-fx-padding: 4;">
+    <Label text="Completed deals" styleClass="section-title"/>
+    <FlowPane hgap="10" vgap="8" alignment="CENTER_LEFT">
+        <HBox spacing="6" alignment="CENTER_LEFT">
+            <Label text="Date range:"/>
+            <DatePicker fx:id="fromDate" promptText="From"/>
+            <Label text="–"/>
+            <DatePicker fx:id="toDate" promptText="To"/>
+        </HBox>
+        <HBox spacing="6" alignment="CENTER_LEFT">
+            <Label text="Category:"/>
+            <ComboBox fx:id="categoryFilter" promptText="All Categories"/>
+        </HBox>
+        <HBox spacing="6" alignment="CENTER_LEFT">
+            <Label text="Search:"/>
+            <TextField fx:id="searchField" promptText="Title or seller..."/>
+        </HBox>
+        <Button fx:id="clearButton" text="Clear" styleClass="btn-outline, btn-sm"/>
+        <Label fx:id="countLabel" text="" style="-fx-text-fill: #5a5a7a;"/>
+    </FlowPane>
+    <TableView fx:id="dealTable" VBox.vgrow="ALWAYS"/>
+</VBox>

@@ -5,11 +5,9 @@ import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.PasswordUtil;
 import com.hkust.marketplace.utils.SceneManager;
 import com.hkust.marketplace.utils.SessionManager;
-import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
@@ -101,38 +99,22 @@ public class AdminDashboardController {
         }
     }
 
+    /**
+     * loads the dedicated all-deals record screen (step 25)
+     */
     @FXML
     private void showDeals() {
         setActive(btnDeals, "All Deals Record");
         contentPane.getChildren().clear();
-
-        VBox root = new VBox(12);
-        root.setPadding(new Insets(4));
-
-        HBox filters = new HBox(10);
-        filters.setAlignment(Pos.CENTER_LEFT);
-        TextField search = new TextField();
-        search.setPromptText("Search by item / user...");
-        ComboBox<String> typeFilter = new ComboBox<>(FXCollections.observableArrayList("All Types", "Sell", "Lend", "Giveaway"));
-        typeFilter.getSelectionModel().selectFirst();
-        filters.getChildren().addAll(search, typeFilter);
-        root.getChildren().add(filters);
-
-        TableView<String[]> table = new TableView<>();
-        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        String[] headers = {"Item", "Buyer", "Seller", "Type", "Status", "Date"};
-        for (int i = 0; i < headers.length; i++) {
-            final int idx = i;
-            TableColumn<String[], String> col = new TableColumn<>(headers[i]);
-            col.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue()[idx]));
-            table.getColumns().add(col);
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/fxml/admin/AllDealsView.fxml"));
+            contentPane.getChildren().add(loader.load());
+        } catch (IOException e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR,
+                    "Could not load all deals screen.\n" + e.getMessage()).showAndWait();
         }
-        table.setItems(FXCollections.observableArrayList(
-                new String[]{"Calculus Textbook", "alice", "charlie", "Sell", "Accepted", "2026-01-15"},
-                new String[]{"USB Hub", "bob", "diana", "Giveaway", "Completed", "2025-12-01"}
-        ));
-        root.getChildren().add(table);
-        contentPane.getChildren().add(root);
     }
 
     @FXML
