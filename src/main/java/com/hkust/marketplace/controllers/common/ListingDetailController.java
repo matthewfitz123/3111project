@@ -4,6 +4,7 @@ import com.hkust.marketplace.models.Listing;
 import com.hkust.marketplace.models.ListingStatus;
 import com.hkust.marketplace.models.ListingType;
 import com.hkust.marketplace.models.Report;
+import com.hkust.marketplace.models.Review;
 import com.hkust.marketplace.models.User;
 import com.hkust.marketplace.models.UserRole;
 import com.hkust.marketplace.utils.DummyDataService;
@@ -23,6 +24,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 
 import java.io.InputStream;
 import java.time.LocalDate;
@@ -70,6 +72,7 @@ public class ListingDetailController {
     @FXML private Label sellerUsernameLabel;
     @FXML private Label sellerRatingStars;
     @FXML private Label sellerRatingCountLabel;
+    @FXML private VBox sellerReviewsBox;
     @FXML private Label sellerBioLabel;
     @FXML private ChatPanelController chatPanelController;
 
@@ -181,6 +184,7 @@ public class ListingDetailController {
             sellerRatingStars.setText("");
             sellerRatingCountLabel.setText("");
             sellerBioLabel.setText("");
+            sellerReviewsBox.getChildren().clear();
             return;
         }
         String name = seller.getFullName() == null ? seller.getUsername() : seller.getFullName();
@@ -192,6 +196,47 @@ public class ListingDetailController {
                 seller.getAverageRating(), seller.getRatingCount()));
         sellerBioLabel.setText(seller.getBio() == null || seller.getBio().isBlank()
                 ? "This seller has not added a bio." : seller.getBio());
+        renderSellerReviews(seller);
+    }
+
+    // newest visible reviews first, hidden ones are filtered out by the store
+    private void renderSellerReviews(User seller) {
+        sellerReviewsBox.getChildren().clear();
+        List<Review> reviews = new java.util.ArrayList<>(
+                DummyDataService.getInstance().getReviewsForSeller(seller.getUsername()));
+        reviews.sort(java.util.Comparator.comparing(Review::getCreatedAt,
+                java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder())));
+
+        Label heading = new Label("Reviews (" + reviews.size() + ")");
+        heading.setStyle("-fx-font-weight: bold; -fx-text-fill: #003974;");
+        sellerReviewsBox.getChildren().add(heading);
+        if (reviews.isEmpty()) {
+            Label none = new Label("No reviews yet.");
+            none.setStyle("-fx-text-fill: #9aa0b0; -fx-font-size: 12px;");
+            sellerReviewsBox.getChildren().add(none);
+            return;
+        }
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("d MMM yyyy");
+        for (Review review : reviews) {
+            Label top = new Label(stars(review.getRating()) + "  @" + review.getBuyerUsername()
+                    + (review.getListingTitle() == null ? "" : "  ·  " + review.getListingTitle())
+                    + (review.getCreatedAt() == null ? "" : "  ·  " + review.getCreatedAt().format(format)));
+            top.setStyle("-fx-text-fill: #A68137; -fx-font-size: 12px;");
+            VBox row = new VBox(2, top);
+            if (review.getComment() != null && !review.getComment().isBlank()) {
+                Label comment = new Label(review.getComment());
+                comment.setWrapText(true);
+                comment.setStyle("-fx-text-fill: #1a1a2e; -fx-font-size: 13px;");
+                row.getChildren().add(comment);
+            }
+            if (review.getSellerReply() != null && !review.getSellerReply().isBlank()) {
+                Label reply = new Label("Seller reply: " + review.getSellerReply());
+                reply.setWrapText(true);
+                reply.setStyle("-fx-text-fill: #5a5a7a; -fx-font-size: 12px; -fx-font-style: italic;");
+                row.getChildren().add(reply);
+            }
+            sellerReviewsBox.getChildren().add(row);
+        }
     }
 
     private void renderActions() {
