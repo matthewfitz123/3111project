@@ -83,31 +83,42 @@ The shots cover a price offer, a same-day borrow, a past-date rejection, a givea
 
 _(paste screenshot)_
 
-The shot is My Deals for an accepted borrow, then the review dialog after Return early. Input: as `alice`, after Diana accepts a borrow that starts today and ends in a few days, open My Deals and click Return early, then confirm. The marker should see the due date and Return early on the active card, then a success notice and the Rate Seller dialog. Choosing Later leaves a Leave review button on that returned card.
+1. On the welcome screen choose the seller portal. Log in as `diana` / `Password12`.
+2. Open Offers. If Graphing Calculator TI-84 has no pending borrow yet, log out, log in as `alice` / `Password12` on the buyer portal, open that lend listing from Browse Marketplace, click the borrow action, set start to today and end to a later day, and send it. Log back in as `diana` and accept that offer.
+3. Log in as `alice`. Click My Deals. Take the shot while the calculator card shows the due date and the Return early button.
+4. Click Return early and confirm. Take a second shot of the Rate Seller dialog. If you click Later, the same card must still show Leave review.
 
 **1.8 Profile**
 
 _(paste screenshot)_
 
-The shot is the buyer profile form after a valid save and after a bad password. Input: as `alice`, set full name to `Alice Wong` and save with the password boxes empty; then type `short` in the new password and a different confirmation. The marker should see “Profile saved” (or the equivalent success alert) for the name change, and a warning for the weak or mismatched password with the old password still in force.
+1. Log in on the buyer portal as `alice` / `Password12`. Click My Profile.
+2. Change Full Name to `Alice Wong`. Leave both password boxes empty. Click Save Changes. The shot must show the success alert.
+3. On the same form type `short` in New Password and `different` in Confirm New Password. Click Save Changes. The shot must show the warning that the password is too weak or that the two boxes do not match. The account must still log in with `Password12`.
 
 **1.9 Notifications**
 
 _(paste screenshot)_
 
-The shot is the buyer notification board after the seller acts on an offer. Input: as `alice`, send an offer; log in as the seller (`charlie` or `diana`) and accept or decline it; log back in as `alice` and open Notifications. The marker should see a row with a category such as Offer, a timestamp, and text that the offer was accepted or declined.
+1. Log in on the buyer portal as `alice` / `Password12`. On Browse Marketplace open Calculus Textbook (Stewart), which is Charlie’s live sell listing. Submit an offer of `160`.
+2. Log out. Log in on the seller portal as `charlie` / `Password12`. Open Offers and decline that offer.
+3. Log in again as `alice`. Click Notifications. The shot must show a row whose text says the offer was declined, with a category and a time.
 
 **1.10 Deal history**
 
 _(paste screenshot)_
 
-The shot is the completed-deals table with a filter and a review control. Input: as `alice`, open Deal History after a returned borrow or a completed purchase, set the category filter or type the seller name in search. The marker should see the item title, seller, date, type (Bought, Borrowed, or Received), and outcome, with Leave review on a row that is not yet rated. Rows that do not match the filter drop out of the table.
+1. Finish the Return early steps in 1.7 so Alice has a returned borrow, or mark a completed purchase from My Deals.
+2. Still as `alice`, click Deal History.
+3. In the search box type `Diana` or set Category to Electronics. The shot must show the table columns Item Title, Seller, Category, Deal Date, Type, and Outcome, only the rows that match, and Leave review on a returned or completed row that has not been rated yet.
 
 **1.11 Reviews**
 
 _(paste screenshot)_
 
-The shot is a submitted review and the seller rating on the listing page. Input: as `alice`, on a completed purchase or returned borrow, submit 5 stars and a short comment such as `thanks`. The marker should see the “review was posted” alert, the button change to Reviewed, and the seller average on that seller’s listing detail include the new score. A second submit on the same deal is rejected.
+1. As `alice`, open My Deals or Deal History on the returned calculator or a completed purchase. Click Leave review.
+2. Leave the rating at 5 stars. Type `thanks` in the comment. Click Submit review. The shot must show the alert that the review was posted, and the button replaced by Reviewed.
+3. Open Browse Marketplace, then Diana’s or Charlie’s listing. The shot must show that seller’s rating on the detail page. Clicking Leave review again on the same deal must show a warning that it was already reviewed.
 
 ### Seller
 
@@ -115,43 +126,56 @@ The shot is a submitted review and the seller rating on the listing page. Input:
 
 _(paste screenshot)_
 
-The shots are a new seller registration and a successful seller login. Input: register username `frank`, full name `Frank Ho`, password `Password12`, a short bio, and a meet-up such as the Library; then log in as `charlie` / `Password12` on the seller portal. The marker should see a success message for `frank`, and Charlie’s seller dashboard. Using `alice` on the seller portal shows that the account is not a seller.
+1. From the welcome screen open seller registration. Type username `frank`, full name `Frank Ho`, password `Password12`, the same password again, a bio such as `Selling textbooks`, and a meet-up location. Submit. The shot must show the success message.
+2. Open the seller login screen. Type `charlie` / `Password12`. The shot must show the seller dashboard titled My Listings.
+3. Log out and try `alice` / `Password12` on the seller login. The shot must show the warning that this account is not a seller, and the dashboard must not open.
 
 **2.3 Create listing**
 
 _(paste screenshot)_
 
-The shot is the create-listing form after submit, and the same item waiting for review. Input: as `charlie`, choose Sell, title `Desk Lamp`, a category, condition, price `40`, and a meet-up, then submit. The marker should see a success alert and the listing under My Listings with status pending review. It does not appear on the buyer browse grid until an admin approves it.
+1. Log in on the seller portal as `charlie` / `Password12`. Click Create Listing.
+2. Set Listing Type to Sell, Item Name to `USB Fan`, Category to Electronics, Condition to Used, Price to `40`, and a meet-up location. Click submit.
+3. The shot must show the success alert, then My Listings with USB Fan marked pending review. Log in as `alice` and confirm USB Fan is not on Browse Marketplace.
 
 **2.5 My listings**
 
 _(paste screenshot)_
 
-The shot is the confirmation dialog for edit or delete. Input: as `charlie` or `diana`, open a listing that is live, rejected, or pending and has no pending offer, change the title or click delete, and confirm. The marker should see the confirmation text before anything changes, then the updated title or the listing removed from the seller’s list. A listing with a pending offer stays locked and shows a warning instead.
+1. Log in as `charlie` / `Password12`. On My Listings pick a live listing with no pending offer, such as MacBook Pro Charger 61W. Click Edit.
+2. If a history warning appears, confirm it. Clear the title and click Save. The shot must show “Title cannot be empty.”
+3. Type `MacBook Charger` and save. The shot must show that new title on the card. Click Delete on a pending listing you created yourself and capture the confirmation dialog before you confirm.
 
 **2.6 Offers**
 
 _(paste screenshot)_
 
-The shot is the seller offer card and the buyer’s follow-up notice. Input: `alice` offers `80` on Charlie’s live sell listing; `charlie` accepts, declines, or counters with `90`. The marker should see the offer leave the pending list, the listing become sold on accept, and `alice` receive a notification that names the decision.
+1. Log in as `alice` / `Password12`. Offer `200` on MacBook Pro Charger 61W.
+2. Log in as `charlie` / `Password12`. Open Offers. The shot must show Alice’s offer of HK$200 with Accept, Decline, and Counter.
+3. Click Counter, type `220`, and send it. The offer must leave the pending list. Log in as `alice`, open Notifications, and the shot must show a counter notice for that listing.
 
 **2.7 Profile and 2.8 Notifications**
 
 _(paste screenshot)_
 
-The shots are the seller profile form and the seller notification list. Input: as `charlie`, set the bio to `Textbooks and electronics` and a preferred meet-up, and save; then open Notifications after an admin approves a listing or a buyer sends an offer. The marker should see “Profile saved” with the new bio, and a notification row with a category and time for the approval, offer, review, or completed deal.
+1. Log in as `charlie` / `Password12`. Click My Profile. Set Bio to `Textbooks and electronics`, pick a preferred meet-up, and leave the password boxes empty. Click Save Changes. The shot must show the “Profile saved” alert and the new bio still in the box.
+2. Have `alice` send any offer to one of Charlie’s live listings, or ask `admin` to approve Charlie’s USB Fan. Click Notifications as `charlie`. The shot must show a row with a category and a time for the new offer or the approval.
 
 **2.9 Stats**
 
 _(paste screenshot)_
 
-The shot is the seller stats screen. Input: log in as `charlie` or `diana` after at least one listing has been opened and one offer or deal exists. The marker should see numeric views, offers, deals, and rating, plus a bar chart and a pie chart built from those listing rows and status counts.
+1. Log in as `alice` and open Calculus Textbook (Stewart) once, so the view count moves.
+2. Log out and log in as `charlie` / `Password12`. Click Seller Stats.
+3. The shot must show the numbers for views, offers, deals, and rating, and both the bar chart and the pie chart on that same screen.
 
 **2.10 Reviews**
 
 _(paste screenshot)_
 
-The shot is a seller reply or flag on a buyer review. Input: after `alice` posts a review of `charlie`, log in as `charlie`, open Reviews, and reply `Glad it worked` or flag the review. The marker should see the reply stored on the review and a notification for the buyer, or the flagged review hidden from the public average until an admin looks at it.
+1. Complete 1.11 so `alice` has posted a review of Charlie or Diana.
+2. Log in as that seller (`charlie` or `diana`, password `Password12`). Click Reviews & Feedback.
+3. On Alice’s review, type `Glad it worked` and send the reply, or click flag. The shot must show the reply under the review, or the flagged state. Log in as `alice` and open Notifications if you replied: the shot must include her reply notice.
 
 ### Admin
 
@@ -159,31 +183,40 @@ The shot is a seller reply or flag on a buyer review. Input: after `alice` posts
 
 _(paste screenshot)_
 
-The shots are admin login and the pending-listing queue. Input: `admin` / `Admin12345`, then approve one pending item and reject another with reason `Photo is unclear`. The marker should see the admin panel, the approved listing become live for buyers, and the rejected listing stay off browse with the seller notified of the reason. There is no admin registration screen.
+1. From the welcome screen open the admin login. There is no admin registration. Type `admin` / `Admin12345`. The shot must show the admin panel on Listing Review.
+2. Mini Fridge (Diana) is already pending. Create USB Fan as Charlie in 2.3 so a second pending item exists. On Listing Review click Approve on USB Fan.
+3. Click Reject on Mini Fridge, type `Photo is unclear`, and confirm. The shot must show the reason dialog. USB Fan must then appear on Alice’s Browse Marketplace. Mini Fridge must not. Diana’s Notifications must mention the rejection reason.
 
 **3.3 Users and 3.4 Profile**
 
 _(paste screenshot)_
 
-The shots are the user list action and the admin profile form. Input: deactivate or soft-delete `bob` and confirm; then change the admin display name and save, leaving the password blank or setting a new one that matches `Admin12345`’s rules. The marker should see a confirmation before the user change, `bob` blocked on the next login, and a success alert for the admin name. Listings and deals for that user stay in the database.
+1. Stay logged in as `admin` / `Admin12345`. Click Manage Users. Find `bob` and choose deactivate or soft-delete. The shot must show the confirmation dialog before you confirm.
+2. After confirming, log out and try the buyer portal with `bob` / `Password12`. The shot must show that the account is deactivated.
+3. Log back in as `admin`. Click My Profile, change the display name to `HKUST Admin`, leave the password blank, and save. The shot must show the success alert. Bob’s old listings and deals must still be listed under All Deals or All Listings.
 
 **3.5 All deals and 3.6 Notifications**
 
 _(paste screenshot)_
 
-The shots are the all-deals table and the admin notification board. Input: search for a listing title or seller such as `alice`, or set a date or category filter; open Notifications after a new listing is submitted or a listing is reported. The marker should see deal rows with title, parties, dates, type, and status, only the rows that match the filter, and a notification with a category and timestamp for the submission or report.
+1. As `admin`, click All Deals. In the search box type `alice` or a listing title from a deal you already completed. The shot must show columns for the item, the buyer and seller, dates, type, and status, and only the rows that match.
+2. As `alice`, open any live listing and submit a report with a short reason. Log back in as `admin` and click Notifications. The shot must show that report, or Diana’s Mini Fridge submission, with a category and a timestamp.
 
 **3.7 Manage listings**
 
 _(paste screenshot)_
 
-The shot is an admin edit or a takedown with a reason. Input: on a live listing that `alice` has a pending offer on, take it down with reason `Duplicate post`, or edit the title and save. The marker should see the confirmation or reason field, the listing leave the live browse grid when removed, and a notification to `alice` because she had an active offer.
+1. As `alice`, offer `150` on Calculus Textbook (Stewart) and leave that offer pending.
+2. Log in as `admin`. Click All Listings. Open that textbook and click the remove action. Type `Duplicate post`. The shot must show the reason field before you confirm.
+3. Confirm. Log in as `alice`. The textbook must be gone from Browse Marketplace, and Notifications must tell her the listing was removed.
 
 **3.8 Ratings**
 
 _(paste screenshot)_
 
-The shot is the ratings overview with a filter and a hidden review. Input: filter by seller `charlie` or by a rating, then hide one review. The marker should see only the matching rows, the hidden review drop out of the public seller average, and the row still listed for the admin so it can be shown again.
+1. Post Alice’s 5-star review of Charlie in 1.11 first.
+2. Log in as `admin` / `Admin12345`. Click Seller Ratings. Filter by seller `charlie` or by 5 stars. The shot must show only the matching rows.
+3. Hide Alice’s review. The shot must still list that row for the admin, marked hidden. Open Charlie’s listing as `alice`: the public rating must no longer include that hidden score.
 
 ## 2. Unit testing report
 
