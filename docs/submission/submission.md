@@ -34,61 +34,61 @@ No screenshots are stored in the repo. Paste each capture in the blank under its
 
 _(paste screenshot)_
 
-Paste the registration form with a new buyer username and the success message, and a second shot of the duplicate-username error.
+The shot is the buyer registration form after a new account is submitted, plus the error when the username is already taken. Input: a fresh username such as `evan`, full name `Evan Lee`, password and confirmation `Password12`, and optionally a residence hall; then the same form again with username `alice`. The marker should see a success message and cleared fields for `evan`, and a duplicate-username warning for `alice` with no second account created.
 
 **1.2 Login**
 
 _(paste screenshot)_
 
-Paste a successful buyer login as `alice`, and the message shown when a seller account is used on the buyer portal.
+The shot is the buyer login screen, once for a real buyer and once for the wrong role. Input: `alice` / `Password12`, then `charlie` / `Password12` on the same buyer portal. The marker should see the buyer dashboard for `alice`, and a warning that the account is not a buyer for `charlie`, with no session opened.
 
 **1.3 Browse**
 
 _(paste screenshot)_
 
-Paste the live-listings grid after a keyword or category filter, with the sort control visible.
+The shot is the buyer browse grid after a filter, with the sort control still on screen. Input: log in as `alice`, type a keyword such as `fridge` or pick one category, and set sort to Title A–Z or Price: Low to High. The marker should see only live listings that match, with lend and giveaway items still listed when the filter is not a price filter.
 
 **1.4 Listing detail**
 
 _(paste screenshot)_
 
-Paste one live listing open on the detail screen, showing photos or the empty-photo state, the seller rating, and the view count.
+The shot is one live listing opened from browse. Input: as `alice`, open a Charlie sell listing such as the seeded live sell item. The marker should see the title, price or type, category, condition, meet-up, photos or the empty-photo state, the seller rating, and a view count that has gone up by one for this open.
 
 **1.5 Offer, borrow, claim, and chat**
 
 _(paste screenshot)_
 
-Paste a sell offer confirmation, a same-day borrow request, the warning when a start or end date is before today, a giveaway claim confirmation, and the shared chat thread with a search hit.
+The shots cover a price offer, a same-day borrow, a past-date rejection, a giveaway claim, and chat search. Input: as `alice`, offer a positive price such as `80` on a live sell listing; on Diana’s lend listing pick today for both start and end, then try yesterday; claim the live giveaway; send a chat line such as `library pickup` and search for `library`. The marker should see a confirmation that the offer or same-day request was sent, the warning “the start and end dates cannot be in the past” with nothing stored, a claim confirmation and the item no longer available, and the chat hit in the shared thread.
 
 **1.7 My Deals**
 
 _(paste screenshot)_
 
-Paste My Deals with an active borrow (due date and Return early) and, after Return early, the review dialog.
+The shot is My Deals for an accepted borrow, then the review dialog after Return early. Input: as `alice`, after Diana accepts a borrow that starts today and ends in a few days, open My Deals and click Return early, then confirm. The marker should see the due date and Return early on the active card, then a success notice and the Rate Seller dialog. Choosing Later leaves a Leave review button on that returned card.
 
 **1.8 Profile**
 
 _(paste screenshot)_
 
-Paste a successful name change, and the warning for a weak or mismatched password.
+The shot is the buyer profile form after a valid save and after a bad password. Input: as `alice`, set full name to `Alice Wong` and save with the password boxes empty; then type `short` in the new password and a different confirmation. The marker should see “Profile saved” (or the equivalent success alert) for the name change, and a warning for the weak or mismatched password with the old password still in force.
 
 **1.9 Notifications**
 
 _(paste screenshot)_
 
-Paste the buyer notification list after an offer is accepted or declined, showing category and time.
+The shot is the buyer notification board after the seller acts on an offer. Input: as `alice`, send an offer; log in as the seller (`charlie` or `diana`) and accept or decline it; log back in as `alice` and open Notifications. The marker should see a row with a category such as Offer, a timestamp, and text that the offer was accepted or declined.
 
 **1.10 Deal history**
 
 _(paste screenshot)_
 
-Paste the completed-deals table with a returned or completed row, a filter applied, and the Leave review control on a row that has not been rated.
+The shot is the completed-deals table with a filter and a review control. Input: as `alice`, open Deal History after a returned borrow or a completed purchase, set the category filter or type the seller name in search. The marker should see the item title, seller, date, type (Bought, Borrowed, or Received), and outcome, with Leave review on a row that is not yet rated. Rows that do not match the filter drop out of the table.
 
 **1.11 Reviews**
 
 _(paste screenshot)_
 
-Paste a submitted 1–5 review and the updated seller rating on the listing detail page.
+The shot is a submitted review and the seller rating on the listing page. Input: as `alice`, on a completed purchase or returned borrow, submit 5 stars and a short comment such as `thanks`. The marker should see the “review was posted” alert, the button change to Reviewed, and the seller average on that seller’s listing detail include the new score. A second submit on the same deal is rejected.
 
 ### Seller
 
@@ -96,43 +96,43 @@ Paste a submitted 1–5 review and the updated seller rating on the listing deta
 
 _(paste screenshot)_
 
-Paste seller registration (bio and meet-up filled in) and a successful login as `charlie`.
+The shots are a new seller registration and a successful seller login. Input: register username `frank`, full name `Frank Ho`, password `Password12`, a short bio, and a meet-up such as the Library; then log in as `charlie` / `Password12` on the seller portal. The marker should see a success message for `frank`, and Charlie’s seller dashboard. Using `alice` on the seller portal shows that the account is not a seller.
 
 **2.3 Create listing**
 
 _(paste screenshot)_
 
-Paste a new sell listing submitted, then the same item sitting in pending review.
+The shot is the create-listing form after submit, and the same item waiting for review. Input: as `charlie`, choose Sell, title `Desk Lamp`, a category, condition, price `40`, and a meet-up, then submit. The marker should see a success alert and the listing under My Listings with status pending review. It does not appear on the buyer browse grid until an admin approves it.
 
 **2.5 My listings**
 
 _(paste screenshot)_
 
-Paste edit or delete with the confirmation dialog, on a listing that is still live, rejected, or pending.
+The shot is the confirmation dialog for edit or delete. Input: as `charlie` or `diana`, open a listing that is live, rejected, or pending and has no pending offer, change the title or click delete, and confirm. The marker should see the confirmation text before anything changes, then the updated title or the listing removed from the seller’s list. A listing with a pending offer stays locked and shows a warning instead.
 
 **2.6 Offers**
 
 _(paste screenshot)_
 
-Paste accept, decline, or counter on a pending offer, and the buyer notification that follows.
+The shot is the seller offer card and the buyer’s follow-up notice. Input: `alice` offers `80` on Charlie’s live sell listing; `charlie` accepts, declines, or counters with `90`. The marker should see the offer leave the pending list, the listing become sold on accept, and `alice` receive a notification that names the decision.
 
 **2.7 Profile and 2.8 Notifications**
 
 _(paste screenshot)_
 
-Paste the seller profile form (name, password, bio, meet-up) and the seller notification list (approval, offer, review, or completion).
+The shots are the seller profile form and the seller notification list. Input: as `charlie`, set the bio to `Textbooks and electronics` and a preferred meet-up, and save; then open Notifications after an admin approves a listing or a buyer sends an offer. The marker should see “Profile saved” with the new bio, and a notification row with a category and time for the approval, offer, review, or completed deal.
 
 **2.9 Stats**
 
 _(paste screenshot)_
 
-Paste the seller stats screen with the view, offer, deal, and rating figures and the bar and pie charts.
+The shot is the seller stats screen. Input: log in as `charlie` or `diana` after at least one listing has been opened and one offer or deal exists. The marker should see numeric views, offers, deals, and rating, plus a bar chart and a pie chart built from those listing rows and status counts.
 
 **2.10 Reviews**
 
 _(paste screenshot)_
 
-Paste a seller reply or flag on a review.
+The shot is a seller reply or flag on a buyer review. Input: after `alice` posts a review of `charlie`, log in as `charlie`, open Reviews, and reply `Glad it worked` or flag the review. The marker should see the reply stored on the review and a notification for the buyer, or the flagged review hidden from the public average until an admin looks at it.
 
 ### Admin
 
@@ -140,31 +140,31 @@ Paste a seller reply or flag on a review.
 
 _(paste screenshot)_
 
-Paste admin login as `admin`, then approve one pending listing and reject another with a reason.
+The shots are admin login and the pending-listing queue. Input: `admin` / `Admin12345`, then approve one pending item and reject another with reason `Photo is unclear`. The marker should see the admin panel, the approved listing become live for buyers, and the rejected listing stay off browse with the seller notified of the reason. There is no admin registration screen.
 
 **3.3 Users and 3.4 Profile**
 
 _(paste screenshot)_
 
-Paste the user list with deactivate or soft-delete confirmation, and the admin name/password form.
+The shots are the user list action and the admin profile form. Input: deactivate or soft-delete `bob` and confirm; then change the admin display name and save, leaving the password blank or setting a new one that matches `Admin12345`’s rules. The marker should see a confirmation before the user change, `bob` blocked on the next login, and a success alert for the admin name. Listings and deals for that user stay in the database.
 
 **3.5 All deals and 3.6 Notifications**
 
 _(paste screenshot)_
 
-Paste the all-deals table with a search or filter, and the admin notification board.
+The shots are the all-deals table and the admin notification board. Input: search for a listing title or seller such as `alice`, or set a date or category filter; open Notifications after a new listing is submitted or a listing is reported. The marker should see deal rows with title, parties, dates, type, and status, only the rows that match the filter, and a notification with a category and timestamp for the submission or report.
 
 **3.7 Manage listings**
 
 _(paste screenshot)_
 
-Paste an edit or a takedown with a reason, on a listing a buyer has offered on.
+The shot is an admin edit or a takedown with a reason. Input: on a live listing that `alice` has a pending offer on, take it down with reason `Duplicate post`, or edit the title and save. The marker should see the confirmation or reason field, the listing leave the live browse grid when removed, and a notification to `alice` because she had an active offer.
 
 **3.8 Ratings**
 
 _(paste screenshot)_
 
-Paste the ratings screen with a filter applied and a review hidden.
+The shot is the ratings overview with a filter and a hidden review. Input: filter by seller `charlie` or by a rating, then hide one review. The marker should see only the matching rows, the hidden review drop out of the public seller average, and the row still listed for the admin so it can be shown again.
 
 ## 2. Unit testing report
 
