@@ -1,5 +1,7 @@
 # Testing report
 
+The combined document for a TA is [submission.md](submission.md). This file is the detailed per-task breakdown.
+
 ## How to run
 
 ```bash

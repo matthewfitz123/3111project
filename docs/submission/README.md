@@ -1,5 +1,7 @@
 # HKUST Marketplace submission docs
 
+The combined document for a TA is [submission.md](submission.md). This page is the older checklist.
+
 This folder collects the grading materials required by the brief.
 
 - [Javadoc guide](javadoc-guide.md) — task-to-code map and how to generate HTML docs.

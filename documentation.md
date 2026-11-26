@@ -1,5 +1,7 @@
 # HKUST Marketplace
 
+The combined document for a TA is [docs/submission/submission.md](docs/submission/submission.md). This file is the longer behaviour write-up.
+
 Campus marketplace for buyers, sellers, and one seeded admin. Matthew is not in the H group, so H-Group items are out of scope and are not described here as delivered. Buyer favourites (1.6) and seller AI descriptions (2.4) are skipped entirely.
 
 The behaviour below is implemented in the service layer, with a local SQLite database behind it. JavaFX controllers call those methods and are not unit tested.

@@ -3,8 +3,8 @@ HKUST Marketplace - supplementary notes
 
 Who this is for
 ---------------
-These notes are for grading the non-H coursework on branch testsANDdocumentation
-(commit af1cc09). Matthew is not in the H group. Every H-Group bullet is out of
+These notes sit beside docs/submission/submission.md, which is the single
+document for a TA. Matthew is not in the H group. Every H-Group bullet is out of
 scope and was not implemented as a requirement. That includes buyer favourites
 and following (buyer 1.6), seller AI descriptions (seller 2.4), and the other
 H-Group extras (offer limits, confirmation-with-details, max borrow days,
@@ -50,9 +50,10 @@ All of the above is backed by a local SQLite database at data/marketplace.db.
 
 Where to look
 -------------
+  docs/submission/submission.md       combined TA document
   docs/submission/testing-report.md   JUnit results per task
   docs/submission/javadoc-guide.md    task-to-method map
-  docs/submission/coverage-report.md  how JaCoCo is produced
+  docs/submission/coverage-report.md  earlier JaCoCo snapshot
   target/site/jacoco/index.html       JaCoCo HTML (generated, not committed)
 
 How to run
@@ -63,10 +64,11 @@ Latest result
 -------------
 131 tests, 0 failures, 0 errors, 0 skipped.
 
-JaCoCo from the latest index.html:
-  overall   86.5% instruction, 67.7% branch (584 of 862)
-  services  69.6% branch
-  utils     62.7% branch
+JaCoCo from ./mvnw test on 2026-11-26 (services and utils only):
+  overall   86.6% instruction (5180 of 5984), 67.6% branch (587 of 868)
+  services  69.4% branch (444 of 640)
+  utils     62.7% branch (143 of 228)
+Overall branch coverage is above 65%. The utils package alone is not.
 
 Two behaviour fixes in af1cc09
 ------------------------------
@@ -117,8 +119,11 @@ Still true limitations
 - The JavaFX controllers are not unit tested. They were checked by loading
   screens and by clicking through the flows.
 - The borrow form only picks dates. The "minimum borrow is 5 seconds" line is
-  a demo hint. The service rejects an end date that is before the start date
-  and allows a same-day borrow.
+  a demo hint. The service rejects an end date that is before the start date,
+  rejects a start or end date that is already in the past, and allows a
+  same-day borrow. A past date shows a warning and is not stored.
+- After Return early, My Deals opens the review dialog, and both My Deals and
+  Deal History keep a Leave review action until the buyer submits one.
 - Photos are copied into src/main/resources/images/uploads and the classpath
   copy. That is enough for a local demo.
 - A pending offer is not a deal until the seller accepts it. My Deals lists
