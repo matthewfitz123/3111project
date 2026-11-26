@@ -1,17 +1,6 @@
 HKUST Marketplace - supplementary notes
 ======================================
 
-Who this is for
----------------
-These notes sit beside docs/submission/submission.md, which is the single
-document for a TA. Matthew is not in the H group. Every H-Group bullet is out of
-scope and was not implemented as a requirement. That includes buyer favourites
-and following (buyer 1.6), seller AI descriptions (seller 2.4), and the other
-H-Group extras (offer limits, confirmation-with-details, max borrow days,
-return reminders while logged out, profile pictures, re-auth, auto-logout,
-priority/unread/archive/delete notifications, export, charts-as-a-requirement
-beyond the seller stats screen, badges, anonymous reviews, and review sorting).
-
 What is in scope
 ----------------
 Non-H buyer tasks 1.1-1.5 and 1.7-1.11, seller tasks 2.1-2.3 and 2.5-2.10,
