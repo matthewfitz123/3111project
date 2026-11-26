@@ -32,25 +32,37 @@ No screenshots are stored in the repo. Paste each capture in the blank under its
 
 **1.1 Registration**
 
-_(paste screenshot)_
+<img width="1152" height="1394" alt="Screenshot 2026-11-26 164928" src="https://github.com/user-attachments/assets/9b45a605-759c-4963-b6fc-cec53477cdd6" />
+<img width="1060" height="1472" alt="Screenshot 2026-11-26 164955" src="https://github.com/user-attachments/assets/29e6e8ab-b08f-4ae5-8a73-539ac1c6cde3" />
+
+
 
 The shot is the buyer registration form after a new account is submitted, plus the error when the username is already taken. Input: a fresh username such as `evan`, full name `Evan Lee`, password and confirmation `Password12`, and optionally a residence hall; then the same form again with username `alice`. The marker should see a success message and cleared fields for `evan`, and a duplicate-username warning for `alice` with no second account created.
 
 **1.2 Login**
 
-_(paste screenshot)_
+<img width="904" height="1160" alt="Screenshot 2026-11-26 165101" src="https://github.com/user-attachments/assets/ba6ac9c6-1311-4a20-b974-2773f904812b" />
+<img width="1018" height="1236" alt="Screenshot 2026-11-26 165050" src="https://github.com/user-attachments/assets/37e758c7-7971-4335-a48d-5342af755724" />
+
+
 
 The shot is the buyer login screen, once for a real buyer and once for the wrong role. Input: `alice` / `Password12`, then `charlie` / `Password12` on the same buyer portal. The marker should see the buyer dashboard for `alice`, and a warning that the account is not a buyer for `charlie`, with no session opened.
 
 **1.3 Browse**
 
-_(paste screenshot)_
+_(paste screenshot)_<img width="2036" height="616" alt="Screenshot 2026-11-26 165140" src="https://github.com/user-attachments/assets/65d3250d-54fd-43e5-9a84-f553fe1d8ca6" />
+<img width="2098" height="826" alt="Screenshot 2026-11-26 165207" src="https://github.com/user-attachments/assets/cdd988d6-b693-4bc5-a93f-7fce6b620d55" />
+<img width="2880" height="1620" alt="Screenshot 2026-11-26 165251" src="https://github.com/user-attachments/assets/8e0f00e4-6d8c-4f46-8651-6cc246101812" />
+
 
 The shot is the buyer browse grid after a filter, with the sort control still on screen. Input: log in as `alice`, type a keyword such as `fridge` or pick one category, and set sort to Title A–Z or Price: Low to High. The marker should see only live listings that match, with lend and giveaway items still listed when the filter is not a price filter.
 
 **1.4 Listing detail**
 
 _(paste screenshot)_
+<img width="2876" height="1614" alt="Screenshot 2026-11-26 165316" src="https://github.com/user-attachments/assets/7a27e556-b357-4bde-b738-0b85781a62f7" />
+<img width="2880" height="1620" alt="Screenshot 2026-11-26 165328" src="https://github.com/user-attachments/assets/b1b7713c-7b4e-417c-9f13-dd7cc519554b" />
+
 
 The shot is one live listing opened from browse. Input: as `alice`, open a Charlie sell listing such as the seeded live sell item. The marker should see the title, price or type, category, condition, meet-up, photos or the empty-photo state, the seller rating, and a view count that has gone up by one for this open.
 
