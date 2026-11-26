@@ -1,15 +1,5 @@
 # HKUST Marketplace — submission
 
-One document for grading. Matthew is not in the H group. H-Group items are out of scope and are not described here as delivered. That includes buyer favourites (1.6), seller AI descriptions (2.4), and the other H-Group extras (offer limits, confirmation-with-details, max borrow days, return reminders while logged out, profile pictures, re-auth, auto-logout, priority/unread/archive/delete notifications, export, extra charts or badges, anonymous reviews, and review sorting).
-
-Older write-ups are still in the repo and linked below. This file is the one to open.
-
-- [documentation.md](../../documentation.md)
-- [javadoc-guide.md](javadoc-guide.md)
-- [testing-report.md](testing-report.md)
-- [coverage-report.md](coverage-report.md)
-- [supplementary-notes.txt](../../supplementary-notes.txt)
-
 ## How to run
 
 Java 21 and Maven. From the project root:
