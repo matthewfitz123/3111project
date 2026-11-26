@@ -82,6 +82,9 @@ The shots cover a price offer, a same-day borrow, a past-date rejection, a givea
 **1.7 My Deals**
 
 _(paste screenshot)_
+<img width="2880" height="1620" alt="image" src="https://github.com/user-attachments/assets/d0011e1d-23d6-4901-804b-44df9da28018" />
+<img width="2880" height="1618" alt="Screenshot 2026-11-26 173549" src="https://github.com/user-attachments/assets/3138325e-39f8-409e-907f-71cfa70b9227" />
+
 
 1. On the welcome screen choose the seller portal. Log in as `diana` / `Password12`.
 2. Open Offers. If Graphing Calculator TI-84 has no pending borrow yet, log out, log in as `alice` / `Password12` on the buyer portal, open that lend listing from Browse Marketplace, click the borrow action, set start to today and end to a later day, and send it. Log back in as `diana` and accept that offer.
@@ -91,6 +94,9 @@ _(paste screenshot)_
 **1.8 Profile**
 
 _(paste screenshot)_
+<img width="2880" height="1618" alt="Screenshot 2026-11-26 173653" src="https://github.com/user-attachments/assets/4e9f234c-cbed-42b2-9a78-ea08786f9fc6" />
+<img width="2878" height="1620" alt="image" src="https://github.com/user-attachments/assets/15a3c939-1aab-466e-9c99-eee7ae9016a8" />
+<img width="2876" height="1620" alt="image" src="https://github.com/user-attachments/assets/7e89606e-4345-406c-a582-85c8d1c93035" />
 
 1. Log in on the buyer portal as `alice` / `Password12`. Click My Profile.
 2. Change Full Name to `Alice Wong`. Leave both password boxes empty. Click Save Changes. The shot must show the success alert.
@@ -99,6 +105,7 @@ _(paste screenshot)_
 **1.9 Notifications**
 
 _(paste screenshot)_
+<img width="2878" height="1616" alt="image" src="https://github.com/user-attachments/assets/440ed545-211f-46d4-b4ff-b030d1fdd786" />
 
 1. Log in on the buyer portal as `alice` / `Password12`. On Browse Marketplace open Calculus Textbook (Stewart), which is Charlie’s live sell listing. Submit an offer of `160`.
 2. Log out. Log in on the seller portal as `charlie` / `Password12`. Open Offers and decline that offer.
@@ -107,6 +114,8 @@ _(paste screenshot)_
 **1.10 Deal history**
 
 _(paste screenshot)_
+<img width="2880" height="1620" alt="image" src="https://github.com/user-attachments/assets/91624fdc-d5b0-466d-959a-0820d85e1d40" />
+
 
 1. Finish the Return early steps in 1.7 so Alice has a returned borrow, or mark a completed purchase from My Deals.
 2. Still as `alice`, click Deal History.
@@ -115,6 +124,8 @@ _(paste screenshot)_
 **1.11 Reviews**
 
 _(paste screenshot)_
+<img width="2880" height="1620" alt="image" src="https://github.com/user-attachments/assets/2ed7285e-3caa-4e5e-b11b-71ad19280e0c" />
+<img width="2880" height="1616" alt="image" src="https://github.com/user-attachments/assets/ebcea3a2-7631-4598-9f5a-fea654de7752" />
 
 1. As `alice`, open My Deals or Deal History on the returned calculator or a completed purchase. Click Leave review.
 2. Leave the rating at 5 stars. Type `thanks` in the comment. Click Submit review. The shot must show the alert that the review was posted, and the button replaced by Reviewed.
@@ -125,6 +136,9 @@ _(paste screenshot)_
 **2.1 Registration and 2.2 Login**
 
 _(paste screenshot)_
+<img width="1702" height="1610" alt="image" src="https://github.com/user-attachments/assets/ccf037f5-009d-4519-9fb7-c4b802d7510f" />
+<img width="2182" height="1620" alt="image" src="https://github.com/user-attachments/assets/aaef2a08-d9aa-4720-b179-1377ea279582" />
+<img width="2880" height="1620" alt="image" src="https://github.com/user-attachments/assets/77f828d1-7151-4215-a78a-fc2bda56ba3b" />
 
 1. From the welcome screen open seller registration. Type username `frank`, full name `Frank Ho`, password `Password12`, the same password again, a bio such as `Selling textbooks`, and a meet-up location. Submit. The shot must show the success message.
 2. Open the seller login screen. Type `charlie` / `Password12`. The shot must show the seller dashboard titled My Listings.
@@ -133,6 +147,9 @@ _(paste screenshot)_
 **2.3 Create listing**
 
 _(paste screenshot)_
+<img width="2860" height="1620" alt="image" src="https://github.com/user-attachments/assets/5cf7ab22-1f63-45f6-8243-ef1ee16554f8" />
+<img width="2880" height="1620" alt="image" src="https://github.com/user-attachments/assets/a9c898e9-e8e3-42b1-b656-5b51e116dc09" />
+
 
 1. Log in on the seller portal as `charlie` / `Password12`. Click Create Listing.
 2. Set Listing Type to Sell, Item Name to `USB Fan`, Category to Electronics, Condition to Used, Price to `40`, and a meet-up location. Click submit.
@@ -141,6 +158,9 @@ _(paste screenshot)_
 **2.5 My listings**
 
 _(paste screenshot)_
+<img width="2876" height="1608" alt="image" src="https://github.com/user-attachments/assets/405ffa1d-38c3-4b32-ae90-acebc8cf8a1a" />
+<img width="2880" height="1620" alt="image" src="https://github.com/user-attachments/assets/2f3febe5-205d-4314-b4a0-c3b0f9cb1593" />
+<img width="2864" height="1614" alt="image" src="https://github.com/user-attachments/assets/0bdc8fde-1dbc-4187-9978-1c8e22d94f98" />
 
 1. Log in as `charlie` / `Password12`. On My Listings pick a live listing with no pending offer, such as MacBook Pro Charger 61W. Click Edit.
 2. If a history warning appears, confirm it. Clear the title and click Save. The shot must show “Title cannot be empty.”
@@ -149,6 +169,8 @@ _(paste screenshot)_
 **2.6 Offers**
 
 _(paste screenshot)_
+<img width="2878" height="1616" alt="image" src="https://github.com/user-attachments/assets/3a016daa-dd39-4c6e-8932-79858302dc89" />
+
 
 1. Log in as `alice` / `Password12`. Offer `200` on MacBook Pro Charger 61W.
 2. Log in as `charlie` / `Password12`. Open Offers. The shot must show Alice’s offer of HK$200 with Accept, Decline, and Counter.
@@ -157,6 +179,8 @@ _(paste screenshot)_
 **2.7 Profile and 2.8 Notifications**
 
 _(paste screenshot)_
+<img width="2880" height="1620" alt="image" src="https://github.com/user-attachments/assets/67b0c6da-d6b1-41ac-bd8c-98d3c23786be" />
+<img width="2874" height="1620" alt="image" src="https://github.com/user-attachments/assets/d72c41e0-81cc-4fa3-aaaa-ee012fb41708" />
 
 1. Log in as `charlie` / `Password12`. Click My Profile. Set Bio to `Textbooks and electronics`, pick a preferred meet-up, and leave the password boxes empty. Click Save Changes. The shot must show the “Profile saved” alert and the new bio still in the box.
 2. Have `alice` send any offer to one of Charlie’s live listings, or ask `admin` to approve Charlie’s USB Fan. Click Notifications as `charlie`. The shot must show a row with a category and a time for the new offer or the approval.
@@ -164,6 +188,7 @@ _(paste screenshot)_
 **2.9 Stats**
 
 _(paste screenshot)_
+<img width="2880" height="1620" alt="image" src="https://github.com/user-attachments/assets/95dfd814-a975-4e26-b23f-1d73d046175b" />
 
 1. Log in as `alice` and open Calculus Textbook (Stewart) once, so the view count moves.
 2. Log out and log in as `charlie` / `Password12`. Click Seller Stats.
@@ -172,6 +197,8 @@ _(paste screenshot)_
 **2.10 Reviews**
 
 _(paste screenshot)_
+<img width="2880" height="1620" alt="image" src="https://github.com/user-attachments/assets/47d5aca8-5c94-47ad-9e6c-44cacecdd6f1" />
+<img width="2878" height="1620" alt="image" src="https://github.com/user-attachments/assets/507b0784-11eb-4af9-86cb-0d4c007fe10d" />
 
 1. Complete 1.11 so `alice` has posted a review of Charlie or Diana.
 2. Log in as that seller (`charlie` or `diana`, password `Password12`). Click Reviews & Feedback.
@@ -182,6 +209,9 @@ _(paste screenshot)_
 **3.1 Login and 3.2 Listing review**
 
 _(paste screenshot)_
+<img width="2880" height="1620" alt="image" src="https://github.com/user-attachments/assets/10ba1d4c-02ae-4b66-9788-4b1301773760" />
+<img width="2790" height="1620" alt="image" src="https://github.com/user-attachments/assets/eef101f2-3144-4809-8e7e-d7d6cb7b26dd" />
+<img width="2880" height="1618" alt="image" src="https://github.com/user-attachments/assets/4421fd65-137d-4659-b2bb-df7f30cdeaa0" />
 
 1. From the welcome screen open the admin login. There is no admin registration. Type `admin` / `Admin12345`. The shot must show the admin panel on Listing Review.
 2. Mini Fridge (Diana) is already pending. Create USB Fan as Charlie in 2.3 so a second pending item exists. On Listing Review click Approve on USB Fan.
@@ -190,6 +220,9 @@ _(paste screenshot)_
 **3.3 Users and 3.4 Profile**
 
 _(paste screenshot)_
+<img width="2880" height="1620" alt="image" src="https://github.com/user-attachments/assets/b73b5b6c-54dc-4691-b7f4-c8c3eb2fc97f" />
+<img width="2866" height="1600" alt="image" src="https://github.com/user-attachments/assets/7988546f-9815-4770-80a8-d6d324639b05" />
+<img width="2866" height="1600" alt="image" src="https://github.com/user-attachments/assets/81a9e5aa-4272-4111-b4d8-7c870f747c2a" />
 
 1. Stay logged in as `admin` / `Admin12345`. Click Manage Users. Find `bob` and choose deactivate or soft-delete. The shot must show the confirmation dialog before you confirm.
 2. After confirming, log out and try the buyer portal with `bob` / `Password12`. The shot must show that the account is deactivated.
@@ -198,6 +231,8 @@ _(paste screenshot)_
 **3.5 All deals and 3.6 Notifications**
 
 _(paste screenshot)_
+<img width="2880" height="1620" alt="image" src="https://github.com/user-attachments/assets/335ecdcb-59a5-47c7-ba4b-668870200ec3" />
+<img width="2880" height="1614" alt="image" src="https://github.com/user-attachments/assets/0e71ab3b-eb5f-49d5-9042-c13edf07aaaa" />
 
 1. As `admin`, click All Deals. In the search box type `alice` or a listing title from a deal you already completed. The shot must show columns for the item, the buyer and seller, dates, type, and status, and only the rows that match.
 2. As `alice`, open any live listing and submit a report with a short reason. Log back in as `admin` and click Notifications. The shot must show that report, or Diana’s Mini Fridge submission, with a category and a timestamp.
@@ -205,6 +240,9 @@ _(paste screenshot)_
 **3.7 Manage listings**
 
 _(paste screenshot)_
+<img width="2880" height="1620" alt="image" src="https://github.com/user-attachments/assets/678012d6-786a-4348-92ec-102525d9f41c" />
+<img width="2880" height="1620" alt="image" src="https://github.com/user-attachments/assets/0ed5997c-7a80-4268-a430-227e884c1b6b" />
+<img width="1344" height="722" alt="image" src="https://github.com/user-attachments/assets/46a73e81-403e-41fe-a3a4-11b4946454e5" />
 
 1. As `alice`, offer `150` on Calculus Textbook (Stewart) and leave that offer pending.
 2. Log in as `admin`. Click All Listings. Open that textbook and click the remove action. Type `Duplicate post`. The shot must show the reason field before you confirm.
@@ -213,6 +251,8 @@ _(paste screenshot)_
 **3.8 Ratings**
 
 _(paste screenshot)_
+<img width="2874" height="1620" alt="image" src="https://github.com/user-attachments/assets/9ab178d6-4ca6-46da-b4e5-4a3956c3b936" />
+<img width="2876" height="1620" alt="image" src="https://github.com/user-attachments/assets/51467b9d-0e2a-410f-a65c-4d572debbb19" />
 
 1. Post Alice’s 5-star review of Charlie in 1.11 first.
 2. Log in as `admin` / `Admin12345`. Click Seller Ratings. Filter by seller `charlie` or by 5 stars. The shot must show only the matching rows.
