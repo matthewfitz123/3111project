@@ -667,10 +667,15 @@ public class BuyerDashboardController {
         if (active && type == ListingType.LEND) {
             Button returnEarly = new Button("Return early");
             returnEarly.getStyleClass().addAll("btn-gold", "btn-sm");
-            returnEarly.setOnAction(e -> runDealAction(
-                    "Return '" + deal.getListingTitle() + "' now? The listing goes live again.",
-                    "Item returned. " + sellerName + " has been notified.",
-                    () -> DealService.returnEarly(deal.getId())));
+            returnEarly.setOnAction(e -> {
+                boolean done = runDealAction(
+                        "Return '" + deal.getListingTitle() + "' now? The listing goes live again.",
+                        "Item returned. " + sellerName + " has been notified.",
+                        () -> DealService.returnEarly(deal.getId()));
+                if (done) {
+                    showReviewDialog(deal);
+                }
+            });
             actions.getChildren().add(returnEarly);
         } else if (active) {
             Button complete = new Button("Mark complete");
@@ -685,12 +690,12 @@ public class BuyerDashboardController {
                 }
             });
             actions.getChildren().add(complete);
-        } else if (status == DealStatus.COMPLETED && !deal.isRated()) {
+        } else if ((status == DealStatus.COMPLETED || status == DealStatus.RETURNED) && !deal.isRated()) {
             Button review = new Button("Leave review");
             review.getStyleClass().addAll("btn-gold", "btn-sm");
             review.setOnAction(e -> showReviewDialog(deal));
             actions.getChildren().add(review);
-        } else if (status == DealStatus.COMPLETED) {
+        } else if (status == DealStatus.COMPLETED || status == DealStatus.RETURNED) {
             Label reviewed = new Label("Reviewed");
             reviewed.setStyle("-fx-text-fill: #2e7d32; -fx-font-size: 12px;");
             actions.getChildren().add(reviewed);

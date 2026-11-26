@@ -43,7 +43,7 @@ public final class OfferService {
      * @return the pending offer
      * @throws SecurityException         when the caller is not the signed-in buyer
      * @throws IllegalStateException     when the listing is missing, not LIVE or is a giveaway
-     * @throws IllegalArgumentException  when the SELL price is not positive/finite or the LEND dates are missing/reversed
+     * @throws IllegalArgumentException  when the SELL price is not positive/finite or the LEND dates are missing, reversed, or already in the past
      */
     public static synchronized Offer submitOffer(Listing listing, User buyer, Double price,
                                                  LocalDate start, LocalDate end, String note) {
@@ -68,6 +68,9 @@ public final class OfferService {
             }
             if (end.isBefore(start)) {
                 throw new IllegalArgumentException("the end date cannot be before the start date");
+            }
+            if (start.isBefore(LocalDate.now()) || end.isBefore(LocalDate.now())) {
+                throw new IllegalArgumentException("the start and end dates cannot be in the past");
             }
             // the demo uses local dates, so same-day is the smallest period we can show
             offer.setBorrowStart(start);
@@ -198,6 +201,9 @@ public final class OfferService {
         } else {
             if (counterEnd == null) {
                 throw new IllegalArgumentException("pick a new return date");
+            }
+            if (counterEnd.isBefore(LocalDate.now())) {
+                throw new IllegalArgumentException("the return date cannot be in the past");
             }
             if (offer.getBorrowStart() != null && counterEnd.isBefore(offer.getBorrowStart())) {
                 throw new IllegalArgumentException("the new return date cannot be before the start date");

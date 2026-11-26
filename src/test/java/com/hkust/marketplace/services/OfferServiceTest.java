@@ -101,6 +101,16 @@ class OfferServiceTest {
                         LocalDate.now(), LocalDate.now().minusDays(1), null));
         assertThrows(IllegalArgumentException.class,
                 () -> OfferService.submitOffer(listing, alice, null, null, null, null));
+
+        int offersBefore = store.getOffersForListing("L103").size();
+        IllegalArgumentException past = assertThrows(IllegalArgumentException.class,
+                () -> OfferService.submitOffer(listing, alice, null,
+                        LocalDate.now().minusDays(2), LocalDate.now().minusDays(1), null));
+        assertTrue(past.getMessage().contains("past"));
+        assertThrows(IllegalArgumentException.class,
+                () -> OfferService.submitOffer(listing, alice, null,
+                        LocalDate.now().minusDays(1), LocalDate.now(), null));
+        assertEquals(offersBefore, store.getOffersForListing("L103").size());
     }
 
     @Test
