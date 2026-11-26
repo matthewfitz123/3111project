@@ -68,7 +68,7 @@
                 </VBox>
             </HBox>
 
-            <Label text="Frontend Demo · Skeleton for COMP Project  ·  No backend connected"
+            <Label text="HKUST Marketplace · Saved in a local SQLite database"
                    style="-fx-text-fill: #6a849e; -fx-font-size: 12px;"/>
         </VBox>
     </center>
