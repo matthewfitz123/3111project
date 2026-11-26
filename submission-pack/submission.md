@@ -1,6 +1,6 @@
 # HKUST Marketplace — submission
 
-Demo accounts, password rules, and limits: [supplementary-notes.md](../../supplementary-notes.md).
+Demo accounts, password rules, and limits: [supplementary-notes.md](supplementary-notes.md).
 
 ## How to run
 
@@ -328,7 +328,7 @@ Fresh report from the 2026-11-26 `./mvnw test` run:
 | `services` | | 69.4% (444 of 640) |
 | `utils` | | 62.7% (143 of 228) |
 
-Overall branch coverage is **67.6%, which is above 65%**. The `utils` package by itself is 62.7% and is not above 65%. The recorded summary in [coverage-report.md](coverage-report.md) is an earlier run (67.7%, 584 of 862). Use the table in this section.
+Overall branch coverage is **67.6%, which is above 65%**. The `utils` package by itself is 62.7% and is not above 65%. The recorded summary in [coverage-report.md](../docs/submission/coverage-report.md) is an earlier run (67.7%, 584 of 862). Use the table in this section.
 
 ## 4. Documentation of implemented tasks (JavaDoc)
 
@@ -338,7 +338,7 @@ Comments live in the sources as `/** ... */` blocks. Generate HTML with:
 ./mvnw javadoc:javadoc
 ```
 
-Open `target/site/apidocs/index.html` (not committed). The class-by-class map is [javadoc-guide.md](javadoc-guide.md).
+Open `target/site/apidocs/index.html` (not committed). The class-by-class map is [javadoc-guide.md](../docs/submission/javadoc-guide.md).
 
 Non-H behaviour, as implemented:
 
