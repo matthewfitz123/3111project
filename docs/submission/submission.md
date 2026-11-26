@@ -69,6 +69,13 @@ The shot is one live listing opened from browse. Input: as `alice`, open a Charl
 **1.5 Offer, borrow, claim, and chat**
 
 _(paste screenshot)_
+<img width="2878" height="1618" alt="image" src="https://github.com/user-attachments/assets/ab2265df-cb1c-4a54-be5d-41fa979e82d9" />
+<img width="2880" height="1620" alt="image" src="https://github.com/user-attachments/assets/feca25a0-fff3-48a0-81a7-4df56307e988" />
+<img width="2868" height="1600" alt="image" src="https://github.com/user-attachments/assets/dd216c4e-8cad-4f41-910a-50945b6e14fe" />
+<img width="2880" height="1580" alt="image" src="https://github.com/user-attachments/assets/189bd6db-0e78-4f2d-9f0e-4bf145753056" />
+<img width="2880" height="1618" alt="image" src="https://github.com/user-attachments/assets/a2ab0e33-f1bc-46f1-93a9-a3923ad8a4c3" />
+<img width="2880" height="1620" alt="image" src="https://github.com/user-attachments/assets/f9f106bd-b742-4f86-91fb-4e633c9981af" />
+
 
 The shots cover a price offer, a same-day borrow, a past-date rejection, a giveaway claim, and chat search. Input: as `alice`, offer a positive price such as `80` on a live sell listing; on Diana’s lend listing pick today for both start and end, then try yesterday; claim the live giveaway; send a chat line such as `library pickup` and search for `library`. The marker should see a confirmation that the offer or same-day request was sent, the warning “the start and end dates cannot be in the past” with nothing stored, a claim confirmation and the item no longer available, and the chat hit in the shared thread.
 
