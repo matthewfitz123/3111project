@@ -1,6 +1,6 @@
 # Coverage report
 
-The combined document for a TA is [submission.md](../../submission-pack/submission.md). The percentages below are an earlier run. The fresh numbers are in that file.
+The combined document for a TA is [submission.md](../../Activity-2_screenshots_and_supplementary-notes/submission.md). The percentages below are an earlier run. The fresh numbers are in that file.
 
 `./mvnw test` runs JaCoCo and writes the HTML report to `target/site/jacoco/index.html`. That folder is generated locally and is not committed.
 

@@ -1,6 +1,6 @@
 # Javadoc guide
 
-The combined document for a TA is [submission.md](../../submission-pack/submission.md). This file is the class-by-class JavaDoc map.
+The combined document for a TA is [submission.md](../../Activity-2_screenshots_and_supplementary-notes/submission.md). This file is the class-by-class JavaDoc map.
 
 Javadoc comments live inside the Java sources as `/** ... */` blocks. They are not a separate document; tools such as `javadoc` or the IDE can render them.
 
