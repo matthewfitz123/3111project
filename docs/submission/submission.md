@@ -168,8 +168,6 @@ The shot is the ratings overview with a filter and a hidden review. Input: filte
 
 ## 2. Unit testing report
 
-Full per-task tables: [testing-report.md](testing-report.md).
-
 ```bash
 ./mvnw test
 ```

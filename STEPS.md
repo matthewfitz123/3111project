@@ -15,7 +15,7 @@
 ## Ground rules (read once)
 
 - **Never store plaintext passwords.** All passwords go through `PasswordUtil` (Step 1).
-- **RBAC is enforced in the service/store layer, not just by hiding buttons.** Every method that changes data must check `SessionManager.getCurrentUser()` role. Document this in the README as "service-layer access control" (there is no backend/API, so this is the correct interpretation).
+- **RBAC is enforced in the service/store layer, not just by hiding buttons.** Every method that changes data must check `SessionManager.getCurrentUser()` role. Document this in `docs/submission/submission.md` as "service-layer access control" (there is no backend/API, so this is the correct interpretation).
 - **`DummyDataService` is the single in-memory working store.** Extend it — do not create parallel stores or second singletons. Step 30 persists it to SQLite.
 - Keep the existing code style: plain JavaFX, no external UI libraries, and no new Maven dependencies except JUnit/JaCoCo (Step 29) and `sqlite-jdbc` + `slf4j-nop` (Step 30).
 - New screens follow the existing dashboard pattern: the dashboard FXML has a `contentPane` StackPane, and the controller builds sub-views in Java (see `BuyerDashboardController.showBrowse()` etc.). Simple dialogs can be new FXML; complex screens can be Java-built panes — match what the skeleton already does.
@@ -47,7 +47,7 @@ Demo logins (after Step 1 these passwords still work — they get hashed at seed
 - In `DummyDataService.seedData()`, pass every seeded password through `PasswordUtil.hash(...)` (e.g. `new User("admin", "...", PasswordUtil.hash("admin123"), UserRole.ADMIN)`).
 - In `BuyerLoginController`, `SellerLoginController`, `AdminLoginController`: replace `user.getPasswordHash().equals(password)` with `PasswordUtil.verify(password, user.getPasswordHash())`.
 - Find the profile-edit dialogs in `BuyerDashboardController`, `SellerDashboardController`, `AdminDashboardController` (search for `New password`) and route new passwords through `PasswordUtil.hash` before calling `setPasswordHash`.
-- Keep `DummyDataService.checkPasswordStrength` unchanged — the rules are already: ≥8 chars, ≥1 uppercase, ≥1 lowercase, ≥1 digit. Write these exact rules into the README in Phase 7.
+- Keep `DummyDataService.checkPasswordStrength` unchanged — the rules are already: ≥8 chars, ≥1 uppercase, ≥1 lowercase, ≥1 digit. Write these exact rules into `supplementary-notes.md` in Phase 7.
 
 **Verify:** run app, log in as `alice`/`password1` — works. Register a new buyer, then confirm `DummyDataService.findUser("newname").getPasswordHash()` is NOT the plaintext (add a temporary println or check via debugger). Wrong password shows error.
 
@@ -382,7 +382,7 @@ private final ScheduledExecutorService exec = Executors.newSingleThreadScheduled
 
 **Do exactly:** table of all users (username, name, role, active, rating); actions per row with `Alert`/confirm dialogs:
 - Deactivate/Reactivate → `deactivateUser`/`reactivateUser` + `logAudit`.
-- Delete → **soft-delete only** (`deactivateUser` + logAudit "USER_DELETED") — document in README that listings/deals/chat are retained for integrity (this answers the spec's "clarify what happens" requirement).
+- Delete → **soft-delete only** (`deactivateUser` + logAudit "USER_DELETED") — document in `supplementary-notes.md` that listings/deals/chat are retained for integrity (this answers the spec's "clarify what happens" requirement).
 - Edit name/role → update + audit.
 
 **Verify:** deactivate `bob` → bob login shows "Account deactivated" (Step 6 check); audit log records it.
@@ -435,10 +435,10 @@ private final ScheduledExecutorService exec = Executors.newSingleThreadScheduled
 
 ### Step 31 — Docs, polish, ZIP
 
-**Files:** `README.md` (rewrite), JavaDoc pass, screenshots.
+**Files:** `docs/submission/submission.md`, `supplementary-notes.md`, JavaDoc pass, screenshots.
 
 **Do exactly:**
-- README: prerequisites (JDK 17+, IntelliJ optional), `mvnw.cmd javafx:run`, demo accounts table, **exact password rules** (10–64 chars, upper+lower+digit), architecture note (SQLite persistence, service-layer RBAC, soft-delete policy), screenshots checklist from `documentation.md` (execution screenshots, unit-test report, coverage report, JavaDoc).
+- Keep the TA write-up in `docs/submission/submission.md` and `supplementary-notes.md`: prerequisites (Java 21), `./mvnw javafx:run`, demo accounts table, **exact password rules** (10–64 chars, upper+lower+digit), architecture note (SQLite persistence, service-layer RBAC, soft-delete policy), and the checklist (execution screenshots, unit-test report, coverage report, JavaDoc).
 - JavaDoc every public class/method (graded requirement).
 - ZIP the `HKUST-Marketplace` folder **excluding** `.idea/`, `*.iml`, `target/`, `data/` and `*.db`.
 

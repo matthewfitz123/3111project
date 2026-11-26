@@ -39,8 +39,7 @@ All of the above is backed by a local SQLite database at data/marketplace.db.
 
 Where to look
 -------------
-  docs/submission/submission.md       combined TA document
-  docs/submission/testing-report.md   JUnit results per task
+  docs/submission/submission.md       combined TA document, including the JUnit results
   docs/submission/javadoc-guide.md    task-to-method map
   docs/submission/coverage-report.md  earlier JaCoCo snapshot
   target/site/jacoco/index.html       JaCoCo HTML (generated, not committed)
@@ -70,7 +69,7 @@ Password rules
 10 to 64 characters, at least one uppercase letter, one lowercase letter,
 and one digit. The confirmation password must match. The same rules are used
 for registration and for profile password changes. They are also written in
-documentation.md.
+docs/submission/submission.md.
 
 Passwords are stored as salted PBKDF2-HMAC-SHA256 hashes. The raw password is
 never stored. Login checks the hash with PasswordUtil.verify.
