@@ -1,5 +1,7 @@
 # HKUST Marketplace — submission
 
+Demo accounts, password rules, and limits: [supplementary-notes.md](../../supplementary-notes.md).
+
 ## How to run
 
 Java 21 and Maven. From the project root:
