@@ -35,9 +35,7 @@ No screenshots are stored in the repo. Paste each capture in the blank under its
 <img width="1152" height="1394" alt="Screenshot 2026-11-26 164928" src="https://github.com/user-attachments/assets/9b45a605-759c-4963-b6fc-cec53477cdd6" />
 <img width="1060" height="1472" alt="Screenshot 2026-11-26 164955" src="https://github.com/user-attachments/assets/29e6e8ab-b08f-4ae5-8a73-539ac1c6cde3" />
 
-
-
-The shot is the buyer registration form after a new account is submitted, plus the error when the username is already taken. Input: a fresh username such as `evan`, full name `Evan Lee`, password and confirmation `Password12`, and optionally a residence hall; then the same form again with username `alice`. The marker should see a success message and cleared fields for `evan`, and a duplicate-username warning for `alice` with no second account created.
+The shot is the buyer registration form after a new account is submitted, plus the error when the username is already taken.
 
 **1.2 Login**
 
@@ -46,7 +44,7 @@ The shot is the buyer registration form after a new account is submitted, plus t
 
 
 
-The shot is the buyer login screen, once for a real buyer and once for the wrong role. Input: `alice` / `Password12`, then `charlie` / `Password12` on the same buyer portal. The marker should see the buyer dashboard for `alice`, and a warning that the account is not a buyer for `charlie`, with no session opened.
+The shot is the buyer login screen, once for a real buyer and once for the wrong role. 
 
 **1.3 Browse**
 
@@ -55,7 +53,7 @@ _(paste screenshot)_<img width="2036" height="616" alt="Screenshot 2026-11-26 16
 <img width="2880" height="1620" alt="Screenshot 2026-11-26 165251" src="https://github.com/user-attachments/assets/8e0f00e4-6d8c-4f46-8651-6cc246101812" />
 
 
-The shot is the buyer browse grid after a filter, with the sort control still on screen. Input: log in as `alice`, type a keyword such as `fridge` or pick one category, and set sort to Title A–Z or Price: Low to High. The marker should see only live listings that match, with lend and giveaway items still listed when the filter is not a price filter.
+The shot is the buyer browse grid after a filter, with the sort control still on screen, with a filter that filters everything away, and then a filter that keeps a portion of the entries. The third screenshot is of all the entries sorted from A-Z as specified in the sort section of the filter.
 
 **1.4 Listing detail**
 
@@ -64,7 +62,7 @@ _(paste screenshot)_
 <img width="2880" height="1620" alt="Screenshot 2026-11-26 165328" src="https://github.com/user-attachments/assets/b1b7713c-7b4e-417c-9f13-dd7cc519554b" />
 
 
-The shot is one live listing opened from browse. Input: as `alice`, open a Charlie sell listing such as the seeded live sell item. The marker should see the title, price or type, category, condition, meet-up, photos or the empty-photo state, the seller rating, and a view count that has gone up by one for this open.
+The shot is one live listing opened from browse.
 
 **1.5 Offer, borrow, claim, and chat**
 
@@ -77,7 +75,7 @@ _(paste screenshot)_
 <img width="2880" height="1620" alt="image" src="https://github.com/user-attachments/assets/f9f106bd-b742-4f86-91fb-4e633c9981af" />
 
 
-The shots cover a price offer, a same-day borrow, a past-date rejection, a giveaway claim, and chat search. Input: as `alice`, offer a positive price such as `80` on a live sell listing; on Diana’s lend listing pick today for both start and end, then try yesterday; claim the live giveaway; send a chat line such as `library pickup` and search for `library`. The marker should see a confirmation that the offer or same-day request was sent, the warning “the start and end dates cannot be in the past” with nothing stored, a claim confirmation and the item no longer available, and the chat hit in the shared thread.
+The shots cover a price offer and then requested borrow dates being inputted and then a free item that had been claimed and then the chat function for the listings along with the chat functions search capability.
 
 **1.7 My Deals**
 
@@ -86,9 +84,9 @@ _(paste screenshot)_
 <img width="2880" height="1618" alt="Screenshot 2026-11-26 173549" src="https://github.com/user-attachments/assets/3138325e-39f8-409e-907f-71cfa70b9227" />
 
 
-1. On the welcome screen choose the seller portal. Log in as `diana` / `Password12`.
-2. Open Offers. If Graphing Calculator TI-84 has no pending borrow yet, log out, log in as `alice` / `Password12` on the buyer portal, open that lend listing from Browse Marketplace, click the borrow action, set start to today and end to a later day, and send it. Log back in as `diana` and accept that offer.
-3. Log in as `alice`. Click My Deals. Take the shot while the calculator card shows the due date and the Return early button.
+1. On the welcome screen choose the seller portal.
+2. Open Offers. If Graphing Calculator TI-84 has no pending borrow yet, log out, log in on the buyer portal, open that lend listing from Browse Marketplace, click the borrow action, set start to today and end to a later day, and send it. Log back in and accept that offer.
+3. Log in Click My Deals. Take the shot while the calculator card shows the due date and the Return early button.
 4. Click Return early and confirm. Take a second shot of the Rate Seller dialog. If you click Later, the same card must still show Leave review.
 
 **1.8 Profile**
