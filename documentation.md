@@ -28,7 +28,7 @@ Further grading notes:
 - `docs/submission/coverage-report.md`
 - `supplementary-notes.txt`
 
-The suite is 130 tests, 0 failures. JaCoCo on the latest run: overall 86.5% instruction and 67.7% branch (584 of 862); services 69.6% branch; utils 62.7% branch.
+The suite is 131 tests, 0 failures. JaCoCo on the latest run: overall 86.5% instruction and 67.7% branch (584 of 862); services 69.6% branch; utils 62.7% branch.
 
 ## Password rules
 

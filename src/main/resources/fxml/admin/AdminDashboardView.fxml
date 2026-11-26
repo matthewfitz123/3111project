@@ -39,6 +39,10 @@
                     onAction="#showProfile" maxWidth="Infinity" alignment="CENTER_LEFT"/>
 
             <Region VBox.vgrow="ALWAYS"/>
+            <Button text="  Clear database" styleClass="sidebar-btn" onAction="#clearDatabase"
+                    maxWidth="Infinity" alignment="CENTER_LEFT"/>
+            <Button text="  Refill demo data" styleClass="sidebar-btn" onAction="#refillDemoData"
+                    maxWidth="Infinity" alignment="CENTER_LEFT"/>
             <Button text="  Logout" styleClass="sidebar-btn" onAction="#logout"
                     maxWidth="Infinity" alignment="CENTER_LEFT"/>
         </VBox>

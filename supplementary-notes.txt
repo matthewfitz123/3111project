@@ -61,7 +61,7 @@ How to run
 
 Latest result
 -------------
-130 tests, 0 failures, 0 errors, 0 skipped.
+131 tests, 0 failures, 0 errors, 0 skipped.
 
 JaCoCo from the latest index.html:
   overall   86.5% instruction, 67.7% branch (584 of 862)

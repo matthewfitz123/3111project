@@ -111,10 +111,7 @@ public class DummyDataService {
 
     private void seedData() {
         // demo passwords are hashed so they match the real registration code
-        // seeded admin account
-        User admin = new User("admin", "System Admin", PasswordUtil.hash("Admin12345"), UserRole.ADMIN);
-        admin.setFullName("HKUST Marketplace Admin");
-        users.put("admin", admin);
+        users.put("admin", seededAdmin());
 
         // demo buyers
         User buyer1 = new User("alice", "Alice Chan", PasswordUtil.hash("Password12"), UserRole.BUYER);
@@ -304,6 +301,38 @@ public class DummyDataService {
      */
     public void resetForTests() {
         suppressPersistence = true;
+        clearCollections();
+        resetCounters();
+        seedData();
+        suppressPersistence = false;
+    }
+
+    /**
+     * wipes the store and the database, then keeps only the seeded admin
+     * so the admin panel can still be used
+     */
+    public void clearKeepingAdmin() {
+        suppressPersistence = true;
+        clearCollections();
+        resetCounters();
+        users.put("admin", seededAdmin());
+        suppressPersistence = false;
+        persist();
+    }
+
+    /**
+     * replaces the store and the database with the original demo accounts and listings
+     */
+    public void refillDemoData() {
+        suppressPersistence = true;
+        clearCollections();
+        resetCounters();
+        seedData();
+        suppressPersistence = false;
+        persist();
+    }
+
+    private void clearCollections() {
         users.clear();
         listings.clear();
         deals.clear();
@@ -315,7 +344,9 @@ public class DummyDataService {
         reports.clear();
         favourites.clear();
         auditLog.clear();
+    }
 
+    private void resetCounters() {
         listingIdCounter.set(100);
         dealIdCounter.set(500);
         notifIdCounter.set(1);
@@ -323,9 +354,12 @@ public class DummyDataService {
         offerIdCounter.set(1);
         chatIdCounter.set(1);
         reportIdCounter.set(1);
+    }
 
-        seedData();
-        suppressPersistence = false;
+    private User seededAdmin() {
+        User admin = new User("admin", "System Admin", PasswordUtil.hash("Admin12345"), UserRole.ADMIN);
+        admin.setFullName("HKUST Marketplace Admin");
+        return admin;
     }
 
     private Listing createListing(String title, String desc, String cat, ListingType type,

@@ -1,6 +1,7 @@
 package com.hkust.marketplace.controllers.admin;
 
 import com.hkust.marketplace.models.*;
+import com.hkust.marketplace.models.UserRole;
 import com.hkust.marketplace.utils.DummyDataService;
 import com.hkust.marketplace.utils.PasswordUtil;
 import com.hkust.marketplace.utils.SceneManager;
@@ -155,6 +156,53 @@ public class AdminDashboardController {
             new Alert(Alert.AlertType.ERROR,
                     "Could not load the notification board.\n" + ex.getMessage()).showAndWait();
         }
+    }
+
+    /**
+     * wipes saved marketplace data and leaves only the seeded admin
+     */
+    @FXML
+    private void clearDatabase() {
+        if (!confirmAdmin("Clear the database? This removes users, listings, offers, chats, deals, notifications, and reviews. The seeded admin account is kept.")) {
+            return;
+        }
+        DummyDataService.getInstance().clearKeepingAdmin();
+        refreshAfterDataReset("Database cleared. Only the admin account remains.");
+    }
+
+    /**
+     * puts the original demo users and listings back into the store and the database
+     */
+    @FXML
+    private void refillDemoData() {
+        if (!confirmAdmin("Refill with the original demo data? Current listings, offers, chats, and deals will be replaced.")) {
+            return;
+        }
+        DummyDataService.getInstance().refillDemoData();
+        refreshAfterDataReset("Demo data restored.");
+    }
+
+    private boolean confirmAdmin(String message) {
+        try {
+            SessionManager.requireRole(UserRole.ADMIN);
+        } catch (SecurityException ex) {
+            new Alert(Alert.AlertType.WARNING, ex.getMessage()).showAndWait();
+            return false;
+        }
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, message);
+        confirm.setHeaderText(null);
+        return confirm.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK;
+    }
+
+    private void refreshAfterDataReset(String message) {
+        User admin = DummyDataService.getInstance().findUser("admin");
+        if (admin != null) {
+            SessionManager.login(admin);
+            welcomeLabel.setText("Admin: " + admin.getFullName());
+        }
+        updateNotificationBadge();
+        showReview();
+        new Alert(Alert.AlertType.INFORMATION, message).showAndWait();
     }
 
     /**
